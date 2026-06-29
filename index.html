@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terraflow · Cockpit</title>
+<style>
+ :root{--onyx:#0A0A0A;--moon:#FAFAFA;--ocean:#0099FF;--gold:#F5B53D;--green:#34D399;--red:#F87171;
+   --mut:#8a8a8a;--line:#1e1e1e;--card:#141414;--card2:#1a1a1a;}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--onyx);color:var(--moon);font-family:'Lexend',-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+ a{color:var(--ocean)}
+ header{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.95);backdrop-filter:blur(8px);
+   border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+ h1{font-size:16px;margin:0;letter-spacing:.3px;flex:1}
+ .upd{font-size:11px;color:var(--mut)}
+ button{font-family:inherit;background:var(--card2);color:var(--moon);border:1px solid var(--line);
+   border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer}
+ button:active{transform:scale(.97)}
+ .wrap{max-width:1100px;margin:0 auto;padding:16px}
+ h2{font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:var(--mut);margin:26px 0 12px}
+ /* scoreboard */
+ .score{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+ .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+ .kpi .v{font-size:24px;font-weight:700}
+ .kpi .l{font-size:11px;color:var(--mut);margin-top:3px;text-transform:uppercase;letter-spacing:.6px}
+ /* pipeline */
+ .board{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
+ .col{flex:0 0 220px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+ .col h3{margin:0 0 10px;font-size:12px;display:flex;justify-content:space-between;align-items:center}
+ .col h3 .n{background:var(--card2);border-radius:20px;padding:1px 9px;font-size:11px;color:var(--mut)}
+ .lead{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 10px;margin-bottom:8px}
+ .lead .nm{font-size:14px;font-weight:600}
+ .lead .mt{font-size:11px;color:var(--mut);margin:3px 0 8px}
+ .lead select{width:100%;font-family:inherit;font-size:12px;background:var(--onyx);color:var(--moon);
+   border:1px solid var(--line);border-radius:7px;padding:5px}
+ .star{color:var(--gold)}
+ .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle}
+ /* creative + health tables */
+ table{width:100%;border-collapse:collapse;font-size:13px}
+ th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+ th{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut)}
+ td.r,th.r{text-align:right}
+ .pill{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
+   border-radius:20px;padding:5px 11px;font-size:12px;margin:0 8px 8px 0}
+ /* login */
+ #gate{position:fixed;inset:0;background:var(--onyx);display:flex;align-items:center;justify-content:center;z-index:50}
+ #gate .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px;width:300px;text-align:center}
+ #gate input{width:100%;margin:14px 0;padding:11px;border-radius:8px;border:1px solid var(--line);background:var(--onyx);color:var(--moon);font-family:inherit}
+ #gate button{width:100%;background:var(--ocean);border:none;padding:11px;font-weight:600}
+ .err{color:var(--red);font-size:12px;min-height:16px}
+ .muted{color:var(--mut)}
+</style></head>
+<body>
+<div id="gate"><div class="box">
+  <div style="font-weight:700;letter-spacing:.4px">Terraflow Cockpit</div>
+  <input id="pw" type="password" placeholder="Access password" autocomplete="current-password">
+  <div class="err" id="gerr"></div>
+  <button onclick="login()">Enter</button>
+</div></div>
+
+<header>
+  <h1>Terraflow · Cockpit</h1>
+  <span class="upd" id="upd"></span>
+  <button onclick="load()">Refresh</button>
+  <button onclick="logout()">Lock</button>
+</header>
+<div class="wrap" id="app" style="display:none">
+  <div class="score" id="score"></div>
+  <h2>Pipeline</h2>
+  <div class="board" id="board"></div>
+  <h2>Creative (last 7d)</h2>
+  <div id="creative"></div>
+  <h2>Engine health</h2>
+  <div id="health"></div>
+</div>
+
+<script>
+const API = "https://zyrjljjzzijtbksebxcl.supabase.co/functions/v1/cockpit-api";
+const WINNER = "120249356092960478";
+const STAGES = ["new","contacted","qualified","booked","won","lost"];
+const STAGE_COLOR = {new:"#8a8a8a",contacted:"#0099FF",qualified:"#F5B53D",booked:"#34D399",won:"#22c55e",lost:"#F87171"};
+let PW = localStorage.getItem("tf_cockpit_pw") || "";
+
+function call(action, extra){
+  return fetch(API,{method:"POST",headers:{"content-type":"application/json"},
+    body:JSON.stringify(Object.assign({password:PW,action},extra||{}))})
+    .then(async r=>{ if(r.status===401){throw "unauthorized";} return r.json(); });
+}
+function login(){
+  PW = document.getElementById("pw").value.trim();
+  call("data").then(d=>{ localStorage.setItem("tf_cockpit_pw",PW); show(d); })
+    .catch(()=>{ document.getElementById("gerr").textContent="Wrong password."; });
+}
+function logout(){ localStorage.removeItem("tf_cockpit_pw"); location.reload(); }
+function load(){ call("data").then(show).catch(openGate); }
+function openGate(){ document.getElementById("gate").style.display="flex"; document.getElementById("app").style.display="none"; }
+
+function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function money(n){ return "AED "+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:2}); }
+
+function show(d){
+  if(d.error){ openGate(); return; }
+  document.getElementById("gate").style.display="none";
+  document.getElementById("app").style.display="block";
+  const s=d.scoreboard||{}, cpl=s.leads_7d>0?(s.spend_7d/s.leads_7d):0;
+  document.getElementById("upd").textContent="updated "+new Date().toLocaleTimeString();
+  document.getElementById("score").innerHTML=[
+    ["Leads total",s.leads_total],["Today",s.leads_today],["Last 7d",s.leads_7d],
+    ["Spend 7d",money(s.spend_7d)],["CPL 7d","AED "+cpl.toFixed(2)]
+  ].map(([l,v])=>`<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+
+  // pipeline
+  const byStage={}; STAGES.forEach(s=>byStage[s]=[]);
+  (d.leads||[]).forEach(l=>{ (byStage[l.stage]||byStage.new).push(l); });
+  document.getElementById("board").innerHTML=STAGES.map(st=>`
+    <div class="col"><h3><span><span class="dot" style="background:${STAGE_COLOR[st]}"></span>${st}</span>
+      <span class="n">${byStage[st].length}</span></h3>
+      ${byStage[st].map(l=>leadCard(l)).join("")}
+    </div>`).join("");
+
+  // creative
+  const ads=(d.creative&&d.creative.ads||[]).filter(a=>a.leads>0).slice(0,10);
+  document.getElementById("creative").innerHTML=`<table><tr>
+    <th>Ad</th><th class="r">Leads</th><th class="r">CPL</th><th class="r">CTR</th><th class="r">Spend</th></tr>
+    ${ads.map(a=>`<tr><td>${a.ad_id===WINNER?'<span class="star">★</span> ':''}…${(a.ad_id||"").slice(-6)}</td>
+      <td class="r">${a.leads}</td><td class="r">${a.cpl!=null?'AED '+a.cpl:'—'}</td>
+      <td class="r">${a.ctr!=null?a.ctr+'%':'—'}</td><td class="r">${money(a.spend)}</td></tr>`).join("")}
+    </table>`;
+
+  // health
+  const jobs=(d.health&&d.health.jobs)||[];
+  document.getElementById("health").innerHTML=jobs.map(j=>{
+    const ok=j.status==="ok"||j.status==="skip";
+    return `<span class="pill"><span class="dot" style="background:${ok?'#34D399':'#F87171'}"></span>
+      ${esc(j.job)} <span class="muted">${esc(j.at||"")}</span></span>`;
+  }).join("") + `<div class="muted" style="font-size:11px;margin-top:6px">Last lead: ${s.last_lead_at?new Date(s.last_lead_at).toLocaleString():"—"}</div>`;
+}
+
+function leadCard(l){
+  const opts=STAGES.map(s=>`<option value="${s}"${s===l.stage?" selected":""}>${s}</option>`).join("");
+  const star=l.ad_id===WINNER?'<span class="star">★</span> ':'';
+  return `<div class="lead">
+    <div class="nm">${star}${esc(l.name||"(no name)")} <span class="muted" style="font-weight:400">•••${esc(l.last4||"")}</span></div>
+    <div class="mt">${esc(l.source||"")} · ${esc(l.created||"")}</div>
+    <select onchange="move('${l.lead_id}',this.value,this)">${opts}</select>
+  </div>`;
+}
+function move(lead_id, stage, el){
+  el.disabled=true;
+  call("set_stage",{lead_id,stage}).then(()=>load()).catch(()=>{ el.disabled=false; alert("Failed to move lead"); });
+}
+
+// boot
+if(PW){ load(); } else { openGate(); }
+document.getElementById("pw").addEventListener("keydown",e=>{ if(e.key==="Enter") login(); });
+setInterval(()=>{ if(PW && document.getElementById("app").style.display!=="none") load(); }, 90000);
+</script>
+</body></html>
