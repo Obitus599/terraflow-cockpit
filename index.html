@@ -2,155 +2,265 @@
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Terraflow · Cockpit</title>
+<title>Terraflow · Command Center</title>
 <style>
  :root{--onyx:#0A0A0A;--moon:#FAFAFA;--ocean:#0099FF;--gold:#F5B53D;--green:#34D399;--red:#F87171;
    --mut:#8a8a8a;--line:#1e1e1e;--card:#141414;--card2:#1a1a1a;}
  *{box-sizing:border-box}
- body{margin:0;background:var(--onyx);color:var(--moon);font-family:'Lexend',-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
- a{color:var(--ocean)}
- header{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.95);backdrop-filter:blur(8px);
+ body{margin:0;background:var(--onyx);color:var(--moon);font-family:'Lexend',-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;font-size:14px}
+ a{color:var(--ocean);text-decoration:none}
+ header{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.96);backdrop-filter:blur(8px);
    border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
- h1{font-size:16px;margin:0;letter-spacing:.3px;flex:1}
+ header .brand{flex:1;min-width:160px}
+ header h1{font-size:15px;margin:0;letter-spacing:.3px}
+ header .tag{font-size:11px;color:var(--mut);margin-top:2px}
  .upd{font-size:11px;color:var(--mut)}
- button{font-family:inherit;background:var(--card2);color:var(--moon);border:1px solid var(--line);
-   border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer}
+ button{font-family:inherit;background:var(--card2);color:var(--moon);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer}
  button:active{transform:scale(.97)}
- .wrap{max-width:1100px;margin:0 auto;padding:16px}
- h2{font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:var(--mut);margin:26px 0 12px}
- /* scoreboard */
- .score{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
- .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
- .kpi .v{font-size:24px;font-weight:700}
- .kpi .l{font-size:11px;color:var(--mut);margin-top:3px;text-transform:uppercase;letter-spacing:.6px}
+ .wrap{max-width:1080px;margin:0 auto;padding:16px}
+ .lead-in{color:var(--mut);font-size:12.5px;line-height:1.6;margin:4px 0 18px}
+ h2{font-size:11.5px;text-transform:uppercase;letter-spacing:1.3px;color:var(--mut);margin:28px 0 4px;display:flex;align-items:center;gap:8px}
+ h2 .h{font-size:11px;color:#666;text-transform:none;letter-spacing:0;font-weight:400}
+ .sub{font-size:11.5px;color:#6b6b6b;margin:0 0 12px}
+ .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+ @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+ .panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px}
+ /* kpis */
+ .score{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+ .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px}
+ .kpi .v{font-size:23px;font-weight:700;line-height:1.1}
+ .kpi .l{font-size:10.5px;color:var(--mut);margin-top:4px;text-transform:uppercase;letter-spacing:.6px}
+ .kpi .d{font-size:11px;margin-top:5px}
+ .up{color:var(--green)} .down{color:var(--red)} .flat{color:var(--mut)}
+ /* narrative */
+ .nrow{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+ .nrow:last-child{border-bottom:none}
+ .nrow .ic{font-size:16px;line-height:1.4;flex:0 0 22px}
+ .nrow .tx{flex:1;font-size:13px;line-height:1.5}
+ .nrow .tx b{font-weight:600}
+ .nrow .tx .m{color:var(--mut);font-size:12px}
+ /* charts */
+ .chartwrap{display:flex;gap:8px;align-items:flex-end}
+ .barlbl{font-size:10px;color:var(--mut);display:flex;justify-content:space-between;margin-top:6px}
  /* pipeline */
- .board{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
- .col{flex:0 0 220px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+ .board{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px}
+ .col{flex:0 0 210px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
  .col h3{margin:0 0 10px;font-size:12px;display:flex;justify-content:space-between;align-items:center}
  .col h3 .n{background:var(--card2);border-radius:20px;padding:1px 9px;font-size:11px;color:var(--mut)}
  .lead{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 10px;margin-bottom:8px}
- .lead .nm{font-size:14px;font-weight:600}
- .lead .mt{font-size:11px;color:var(--mut);margin:3px 0 8px}
- .lead select{width:100%;font-family:inherit;font-size:12px;background:var(--onyx);color:var(--moon);
-   border:1px solid var(--line);border-radius:7px;padding:5px}
- .star{color:var(--gold)}
- .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:middle}
- /* creative + health tables */
+ .lead .nm{font-size:13.5px;font-weight:600}
+ .lead .mt{font-size:10.5px;color:var(--mut);margin:3px 0 8px;line-height:1.4}
+ .lead select{width:100%;font-family:inherit;font-size:12px;background:var(--onyx);color:var(--moon);border:1px solid var(--line);border-radius:7px;padding:5px}
+ /* tables / bars */
  table{width:100%;border-collapse:collapse;font-size:13px}
- th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
- th{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut)}
+ th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line)}
+ th{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut)}
  td.r,th.r{text-align:right}
- .pill{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
-   border-radius:20px;padding:5px 11px;font-size:12px;margin:0 8px 8px 0}
+ .hbar{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:12.5px}
+ .hbar .track{flex:1;height:8px;background:var(--card2);border-radius:6px;overflow:hidden}
+ .hbar .fill{height:100%;border-radius:6px}
+ .hbar .lab{width:74px;color:var(--mut)} .hbar .val{width:34px;text-align:right;color:var(--mut)}
+ /* engine + activity */
+ .eng{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+ .eng:last-child{border-bottom:none}
+ .eng .dot{flex:0 0 9px;width:9px;height:9px;border-radius:50%;margin-top:5px}
+ .eng .nm{font-size:13px;font-weight:600}
+ .eng .ds{font-size:11.5px;color:var(--mut);margin-top:1px;line-height:1.45}
+ .eng .at{font-size:10.5px;color:#666;white-space:nowrap}
+ .feed{font-size:12.5px}
+ .feed .it{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
+ .feed .it:last-child{border-bottom:none}
+ .feed .when{color:#666;white-space:nowrap;font-size:11px;width:78px;flex:0 0 78px}
+ .star{color:var(--gold)} .muted{color:var(--mut)}
+ .pill{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:5px 11px;font-size:12px;margin:0 8px 8px 0}
+ .dotc{display:inline-block;width:7px;height:7px;border-radius:50%}
  /* login */
  #gate{position:fixed;inset:0;background:var(--onyx);display:flex;align-items:center;justify-content:center;z-index:50}
  #gate .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px;width:300px;text-align:center}
  #gate input{width:100%;margin:14px 0;padding:11px;border-radius:8px;border:1px solid var(--line);background:var(--onyx);color:var(--moon);font-family:inherit}
  #gate button{width:100%;background:var(--ocean);border:none;padding:11px;font-weight:600}
  .err{color:var(--red);font-size:12px;min-height:16px}
- .muted{color:var(--mut)}
 </style></head>
 <body>
 <div id="gate"><div class="box">
-  <div style="font-weight:700;letter-spacing:.4px">Terraflow Cockpit</div>
+  <div style="font-weight:700;letter-spacing:.4px">Terraflow Command Center</div>
   <input id="pw" type="password" placeholder="Access password" autocomplete="current-password">
   <div class="err" id="gerr"></div>
   <button onclick="login()">Enter</button>
 </div></div>
 
 <header>
-  <h1>Terraflow · Cockpit</h1>
+  <div class="brand"><h1>Terraflow · Command Center</h1><div class="tag">Meta → WhatsApp lead engine</div></div>
   <span class="upd" id="upd"></span>
   <button onclick="load()">Refresh</button>
   <button onclick="logout()">Lock</button>
 </header>
+
 <div class="wrap" id="app" style="display:none">
+  <div class="lead-in">Every lead from your Meta ads lands here automatically, gets measured against spend, and the engine tells you what's working. Money moves stay gated — you approve them on Telegram. Identities are masked (first name + last 4 only).</div>
+
+  <h2>Scoreboard <span class="h" id="sb-h"></span></h2>
   <div class="score" id="score"></div>
-  <h2>Pipeline</h2>
+
+  <div class="grid2" style="margin-top:14px">
+    <div class="panel"><div class="sub">Leads per day (14d)</div><div id="chart-leads"></div></div>
+    <div class="panel"><div class="sub">Ad spend per day (14d, settles ~7d)</div><div id="chart-spend"></div></div>
+  </div>
+
+  <h2>What's happening <span class="h">the read, in plain words</span></h2>
+  <div class="panel" id="narrative"></div>
+
+  <h2>Pipeline <span class="h">drag a lead's stage — it saves instantly</span></h2>
   <div class="board" id="board"></div>
-  <h2>Creative (last 7d)</h2>
-  <div id="creative"></div>
-  <h2>Engine health</h2>
-  <div id="health"></div>
+
+  <div class="grid2" style="margin-top:14px">
+    <div><h2 style="margin-top:0">Where leads come from</h2><div class="panel" id="breakdowns"></div></div>
+    <div><h2 style="margin-top:0">Approvals</h2><div class="panel" id="approvals"></div></div>
+  </div>
+
+  <h2>Creative <span class="h">last 7 days · ★ = top by leads</span></h2>
+  <div class="panel" id="creative" style="overflow-x:auto"></div>
+
+  <h2>The engine <span class="h">what's running for you, right now</span></h2>
+  <div class="panel" id="engine"></div>
+
+  <h2>Activity <span class="h">what the engine has been doing</span></h2>
+  <div class="panel feed" id="activity"></div>
+
+  <div class="lead-in" id="foot" style="margin-top:22px"></div>
 </div>
 
 <script>
-const API = "https://zyrjljjzzijtbksebxcl.supabase.co/functions/v1/cockpit-api";
-const WINNER = "120249356092960478";
-const STAGES = ["new","contacted","qualified","booked","won","lost"];
-const STAGE_COLOR = {new:"#8a8a8a",contacted:"#0099FF",qualified:"#F5B53D",booked:"#34D399",won:"#22c55e",lost:"#F87171"};
-let PW = localStorage.getItem("tf_cockpit_pw") || "";
+const API="https://zyrjljjzzijtbksebxcl.supabase.co/functions/v1/cockpit-api";
+const STAGES=["new","contacted","qualified","booked","won","lost"];
+const SC={new:"#8a8a8a",contacted:"#0099FF",qualified:"#F5B53D",booked:"#34D399",won:"#22c55e",lost:"#F87171"};
+const ENGINE=[
+  {match:"meta-leads",nm:"Lead capture (webhook)",ds:"Receives every Instant-Form lead the instant it's submitted.",always:true},
+  {match:"reconcile-leads",nm:"Reconcile poll",ds:"Re-checks Meta every 15 min so a lead can never slip through."},
+  {match:"pull-insights",nm:"Performance pull",ds:"Pulls ad spend + metrics from Meta every 6 hours."},
+  {match:"daily-digest",nm:"Morning digest",ds:"Texts you a summary on Telegram at 08:57, or a 0-lead alarm."},
+  {match:"weekly-review",nm:"Weekly creative review",ds:"Mondays: reads performance and proposes creative moves."},
+  {match:"gate",nm:"Approval gate",ds:"Any spend move becomes a one-tap Approve/Reject on Telegram.",always:true},
+  {match:"erase",nm:"PDPL erase",ds:"One command wipes a person's data everywhere, on request.",always:true},
+];
+let PW=localStorage.getItem("tf_cockpit_pw")||"";
 
-function call(action, extra){
+function call(action,extra){
   return fetch(API,{method:"POST",headers:{"content-type":"application/json"},
     body:JSON.stringify(Object.assign({password:PW,action},extra||{}))})
-    .then(async r=>{ if(r.status===401){throw "unauthorized";} return r.json(); });
+    .then(async r=>{ if(r.status===401) throw "unauthorized"; return r.json(); });
 }
-function login(){
-  PW = document.getElementById("pw").value.trim();
-  call("data").then(d=>{ localStorage.setItem("tf_cockpit_pw",PW); show(d); })
-    .catch(()=>{ document.getElementById("gerr").textContent="Wrong password."; });
-}
+function login(){ PW=document.getElementById("pw").value.trim();
+  call("data").then(d=>{localStorage.setItem("tf_cockpit_pw",PW);show(d);})
+   .catch(()=>{document.getElementById("gerr").textContent="Wrong password.";}); }
 function logout(){ localStorage.removeItem("tf_cockpit_pw"); location.reload(); }
 function load(){ call("data").then(show).catch(openGate); }
 function openGate(){ document.getElementById("gate").style.display="flex"; document.getElementById("app").style.display="none"; }
-
 function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function money(n){ return "AED "+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:2}); }
+
+function arrow(cur,prev){
+  if(prev===0||prev==null) return '<span class="flat">new</span>';
+  const p=Math.round((cur-prev)/prev*100);
+  if(p>0) return '<span class="up">▲ '+p+'%</span>';
+  if(p<0) return '<span class="down">▼ '+Math.abs(p)+'%</span>';
+  return '<span class="flat">flat</span>';
+}
+function bars(data,key,color){
+  const w=300,h=64,pad=2,n=data.length,bw=(w-pad*(n-1))/n;
+  const max=Math.max(1,...data.map(x=>x[key]));
+  const rects=data.map((x,i)=>{const bh=Math.max(1,Math.round(x[key]/max*(h-14)));
+    return '<rect x="'+(i*(bw+pad)).toFixed(1)+'" y="'+(h-bh)+'" width="'+bw.toFixed(1)+'" height="'+bh+'" rx="1.5" fill="'+color+'"></rect>';}).join("");
+  const f=data[0],l=data[data.length-1];
+  return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" preserveAspectRatio="none" style="display:block;height:64px">'+rects+'</svg>'
+    +'<div class="barlbl"><span>'+f.d+'</span><span>peak '+max+'</span><span>'+l.d+': '+l[key]+'</span></div>';
+}
+function hbars(obj,total,palette){
+  const ent=Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+  return ent.map(([k,v],i)=>{const pct=total?Math.round(v/total*100):0;
+    const col=palette[i%palette.length];
+    return '<div class="hbar"><span class="lab">'+esc(k)+'</span><span class="track"><span class="fill" style="width:'+pct+'%;background:'+col+'"></span></span><span class="val">'+v+'</span></div>';}).join("");
+}
 
 function show(d){
   if(d.error){ openGate(); return; }
   document.getElementById("gate").style.display="none";
   document.getElementById("app").style.display="block";
-  const s=d.scoreboard||{}, cpl=s.leads_7d>0?(s.spend_7d/s.leads_7d):0;
+  const s=d.scoreboard||{}, cpl=s.leads_7d>0?(s.spend_7d/s.leads_7d):0, cplp=s.leads_prev7d>0?(s.spend_prev7d/s.leads_prev7d):0;
   document.getElementById("upd").textContent="updated "+new Date().toLocaleTimeString();
+  document.getElementById("sb-h").textContent="vs previous 7 days";
   document.getElementById("score").innerHTML=[
-    ["Leads total",s.leads_total],["Today",s.leads_today],["Last 7d",s.leads_7d],
-    ["Spend 7d",money(s.spend_7d)],["CPL 7d","AED "+cpl.toFixed(2)]
-  ].map(([l,v])=>`<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+    ["Leads total",s.leads_total,""],
+    ["Today",s.leads_today,""],
+    ["Leads · 7d",s.leads_7d,arrow(s.leads_7d,s.leads_prev7d)],
+    ["Spend · 7d",money(s.spend_7d),arrow(s.spend_7d,s.spend_prev7d)],
+    ["CPL · 7d","AED "+cpl.toFixed(2),cplp?arrow(cpl,cplp):""]
+  ].map(([l,v,dd])=>'<div class="kpi"><div class="v">'+v+'</div><div class="l">'+l+'</div>'+(dd?'<div class="d">'+dd+'</div>':'')+'</div>').join("");
+
+  // charts
+  document.getElementById("chart-leads").innerHTML=bars(d.series||[],"leads","#0099FF");
+  document.getElementById("chart-spend").innerHTML=bars(d.series||[],"spend","#F5B53D");
+
+  // narrative
+  const nv=d.narrative||{}, rows=[];
+  if(nv.winner) rows.push(['🏆','<b>'+esc(nv.winner.name)+'</b> is carrying the campaign — <b>'+nv.winner.leads+' leads</b> at AED '+nv.winner.cpl+' CPL, '+nv.winner.ctr+'% CTR. <span class="m">Protect it; build variants so you\'re not reliant on one ad.</span>']);
+  if(nv.gem && (!nv.winner || nv.gem.name!==nv.winner.name)) rows.push(['💎','<b>'+esc(nv.gem.name)+'</b> is your cheapest leads — <b>AED '+nv.gem.cpl+' CPL</b> across '+nv.gem.leads+' leads. <span class="m">Worth feeding more budget.</span>']);
+  if((nv.bleeders||[]).length) rows.push(['🩸','<b>Bleeding:</b> '+nv.bleeders.map(b=>esc(b.name)+' ('+money(b.spend)+', 0 leads)').join(', ')+'. <span class="m">Pause candidates — gated, your tap on Telegram.</span>']);
+  const geo=nv.geo||{}, gt=Object.values(geo).reduce((a,b)=>a+b,0), nonuae=gt-(geo.UAE||0);
+  if(gt) rows.push([nonuae/gt>0.2?'🌍':'📍', Math.round(nonuae/gt*100)+'% of leads are outside the UAE'+(geo.UK?' (UK '+geo.UK:'')+(geo.India?', India '+geo.India:'')+(geo.UK?')':'')+'. <span class="m">'+(nonuae/gt>0.2?'Tighten targeting to UAE to stop paying for leads that won\'t close.':'Geo looks healthy.')+'</span>']);
+  rows.push([nv.max_freq>=2.5?'😴':'💨', nv.max_freq>=2.5?'Some ads are fatiguing (frequency '+nv.max_freq+'). <span class="m">Refresh creative.</span>':'No creative fatigue (frequency '+(nv.max_freq||1)+'). <span class="m">Audience still fresh, you have runway.</span>']);
+  document.getElementById("narrative").innerHTML=rows.map(r=>'<div class="nrow"><div class="ic">'+r[0]+'</div><div class="tx">'+r[1]+'</div></div>').join("");
 
   // pipeline
-  const byStage={}; STAGES.forEach(s=>byStage[s]=[]);
-  (d.leads||[]).forEach(l=>{ (byStage[l.stage]||byStage.new).push(l); });
-  document.getElementById("board").innerHTML=STAGES.map(st=>`
-    <div class="col"><h3><span><span class="dot" style="background:${STAGE_COLOR[st]}"></span>${st}</span>
-      <span class="n">${byStage[st].length}</span></h3>
-      ${byStage[st].map(l=>leadCard(l)).join("")}
-    </div>`).join("");
+  const byStage={}; STAGES.forEach(x=>byStage[x]=[]);
+  (d.leads||[]).forEach(l=>{(byStage[l.stage]||byStage.new).push(l);});
+  document.getElementById("board").innerHTML=STAGES.map(st=>'<div class="col"><h3><span><span class="dotc" style="background:'+SC[st]+'"></span> '+st+'</span><span class="n">'+byStage[st].length+'</span></h3>'+byStage[st].map(leadCard).join("")+'</div>').join("");
+
+  // breakdowns
+  const src=nv.sources||{}, st2=Object.values(src).reduce((a,b)=>a+b,0);
+  document.getElementById("breakdowns").innerHTML=
+    '<div class="sub">By country</div>'+hbars(geo,gt,["#0099FF","#F5B53D","#34D399","#F87171","#8a8a8a"])
+    +'<div class="sub" style="margin-top:12px">By entry path</div>'+hbars(src,st2,["#0099FF","#34D399"]);
+
+  // approvals
+  const ap=d.approvals||{pending:[],recent:[]};
+  let aph = ap.pending.length
+    ? ap.pending.map(p=>'<div class="nrow"><div class="ic">🔐</div><div class="tx"><b>'+esc(p.title)+'</b><div class="m">'+p.kind+' · open on Telegram to approve</div></div></div>').join("")
+    : '<div class="muted" style="font-size:12.5px">No pending approvals. When the engine wants to move spend, it asks here and on Telegram.</div>';
+  if(ap.recent.length) aph+='<div class="sub" style="margin-top:12px">Recent decisions</div>'+ap.recent.map(p=>'<div class="feed"><div class="it"><span class="when">'+(p.at||"")+'</span><span>'+(p.status==="executed"?"✅":p.status==="rejected"?"❌":"•")+' '+esc(p.title)+'</span></div></div>').join("");
+  document.getElementById("approvals").innerHTML=aph;
 
   // creative
-  const ads=(d.creative&&d.creative.ads||[]).filter(a=>a.leads>0).slice(0,10);
-  document.getElementById("creative").innerHTML=`<table><tr>
-    <th>Ad</th><th class="r">Leads</th><th class="r">CPL</th><th class="r">CTR</th><th class="r">Spend</th></tr>
-    ${ads.map(a=>`<tr><td>${a.ad_id===WINNER?'<span class="star">★</span> ':''}…${(a.ad_id||"").slice(-6)}</td>
-      <td class="r">${a.leads}</td><td class="r">${a.cpl!=null?'AED '+a.cpl:'—'}</td>
-      <td class="r">${a.ctr!=null?a.ctr+'%':'—'}</td><td class="r">${money(a.spend)}</td></tr>`).join("")}
-    </table>`;
+  const ads=(d.creative||[]).slice(0,12);
+  document.getElementById("creative").innerHTML='<table><tr><th>Ad</th><th class="r">Leads</th><th class="r">CPL</th><th class="r">CTR</th><th class="r">Freq</th><th class="r">Spend</th></tr>'
+    +ads.map((a,i)=>'<tr><td>'+(i===0?'<span class="star">★</span> ':'')+esc(a.name)+'</td><td class="r">'+a.leads+'</td><td class="r">'+(a.cpl!=null?'AED '+a.cpl:'—')+'</td><td class="r">'+(a.ctr!=null?a.ctr+'%':'—')+'</td><td class="r">'+(a.freq||'—')+'</td><td class="r">'+money(a.spend)+'</td></tr>').join("")+'</table>';
 
-  // health
-  const jobs=(d.health&&d.health.jobs)||[];
-  document.getElementById("health").innerHTML=jobs.map(j=>{
-    const ok=j.status==="ok"||j.status==="skip";
-    return `<span class="pill"><span class="dot" style="background:${ok?'#34D399':'#F87171'}"></span>
-      ${esc(j.job)} <span class="muted">${esc(j.at||"")}</span></span>`;
-  }).join("") + `<div class="muted" style="font-size:11px;margin-top:6px">Last lead: ${s.last_lead_at?new Date(s.last_lead_at).toLocaleString():"—"}</div>`;
+  // engine map
+  const health={}; (d.health||[]).forEach(h=>health[h.job]=h);
+  document.getElementById("engine").innerHTML=ENGINE.map(e=>{
+    const h=health[e.match]; const ok=e.always||(h&&(h.status==="ok"||h.status==="skip"));
+    const at=e.always?"always on":(h?("ran "+h.at):"—");
+    return '<div class="eng"><span class="dot" style="background:'+(ok?'#34D399':'#F87171')+'"></span><div style="flex:1"><div class="nm">'+e.nm+'</div><div class="ds">'+e.ds+'</div></div><div class="at">'+at+'</div></div>';
+  }).join("");
+
+  // activity feed
+  document.getElementById("activity").innerHTML=(d.activity||[]).map(a=>{
+    const ic=a.status==="ok"?"✅":a.status==="skip"?"⏭️":"⚠️";
+    const detail=a.job+(a.rows!=null?" · "+a.rows+" rows":"");
+    return '<div class="it"><span class="when">'+(a.at||"")+'</span><span>'+ic+' '+esc(detail)+'</span></div>';
+  }).join("");
+
+  document.getElementById("foot").textContent="Last lead "+(s.last_lead_at?new Date(s.last_lead_at).toLocaleString():"—")+" · data is masked (first name + last 4 only) · nothing leaves Supabase.";
 }
 
 function leadCard(l){
-  const opts=STAGES.map(s=>`<option value="${s}"${s===l.stage?" selected":""}>${s}</option>`).join("");
-  const star=l.ad_id===WINNER?'<span class="star">★</span> ':'';
-  return `<div class="lead">
-    <div class="nm">${star}${esc(l.name||"(no name)")} <span class="muted" style="font-weight:400">•••${esc(l.last4||"")}</span></div>
-    <div class="mt">${esc(l.source||"")} · ${esc(l.created||"")}</div>
-    <select onchange="move('${l.lead_id}',this.value,this)">${opts}</select>
-  </div>`;
+  const opts=STAGES.map(x=>'<option value="'+x+'"'+(x===l.stage?" selected":"")+'>'+x+'</option>').join("");
+  return '<div class="lead"><div class="nm">'+esc(l.name||"(no name)")+' <span class="muted" style="font-weight:400">•••'+esc(l.last4||"")+'</span></div>'
+    +'<div class="mt">'+esc(l.ad||l.source||"")+'<br>'+esc(l.created||"")+'</div>'
+    +'<select onchange="move(\''+l.lead_id+'\',this.value,this)">'+opts+'</select></div>';
 }
-function move(lead_id, stage, el){
-  el.disabled=true;
-  call("set_stage",{lead_id,stage}).then(()=>load()).catch(()=>{ el.disabled=false; alert("Failed to move lead"); });
-}
+function move(id,stage,el){ el.disabled=true; call("set_stage",{lead_id:id,stage}).then(()=>load()).catch(()=>{el.disabled=false;alert("Failed to move lead");}); }
 
-// boot
 if(PW){ load(); } else { openGate(); }
 document.getElementById("pw").addEventListener("keydown",e=>{ if(e.key==="Enter") login(); });
 setInterval(()=>{ if(PW && document.getElementById("app").style.display!=="none") load(); }, 90000);
