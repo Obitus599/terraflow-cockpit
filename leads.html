@@ -5,9 +5,9 @@
 <title>Terraflow · Leads</title>
 <style>
  :root{--onyx:#0A0A0A;--moon:#FAFAFA;--ocean:#0099FF;--gold:#F5B53D;--green:#34D399;--red:#F87171;
-   --mut:#8a8a8a;--line:#1e1e1e;--card:#141414;--card2:#1a1a1a;--hover:#181818;}
+   --mut:#8a8a8a;--line:#1e1e1e;--grid:#161616;--card:#141414;--card2:#1a1a1a;--hover:#181818;--zebra:#0d0d0d;}
  *{box-sizing:border-box}
- body{margin:0;background:var(--onyx);color:var(--moon);font-family:'Lexend',-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;font-size:13.5px}
+ body{margin:0;background:var(--onyx);color:var(--moon);font-family:'Lexend',-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;font-size:13px}
  a{color:var(--ocean);text-decoration:none}
  header{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.96);backdrop-filter:blur(8px);
    border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
@@ -17,24 +17,42 @@
  header .sp{flex:1}
  button{font-family:inherit;background:var(--card2);color:var(--moon);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer}
  button:active{transform:scale(.97)}
- .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line)}
- .bar input.search{background:var(--card);border:1px solid var(--line);border-radius:9px;color:var(--moon);padding:8px 12px;font-family:inherit;font-size:13px;min-width:180px;flex:1;max-width:320px}
+ .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line)}
+ .bar input.search{background:var(--card);border:1px solid var(--line);border-radius:9px;color:var(--moon);padding:8px 12px;font-family:inherit;font-size:13px;min-width:180px;flex:1;max-width:300px}
  .chips{display:flex;gap:5px;flex-wrap:wrap}
  .chip{padding:5px 10px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--mut);font-size:12px;cursor:pointer;user-select:none}
  .chip.on{background:var(--ocean);border-color:var(--ocean);color:#fff}
+ .chip b{font-weight:600;opacity:.8;margin-left:4px}
  .count{color:var(--mut);font-size:12px;margin-left:auto}
- /* table */
- .tablewrap{overflow-x:auto}
- table{width:100%;border-collapse:collapse}
- th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
- th{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);position:sticky;top:0;background:var(--onyx);cursor:pointer}
- tbody tr{cursor:pointer}
+ .hint{font-size:11.5px;color:#6a6a6a;padding:0 16px 10px;border-bottom:1px solid var(--line)}
+ .hint b{color:#9a9a9a;font-weight:600}
+ /* spreadsheet grid */
+ .sheetwrap{overflow-x:auto}
+ table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+ th,td{text-align:left;padding:0;border-bottom:1px solid var(--grid);border-right:1px solid var(--grid);white-space:nowrap}
+ th{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);position:sticky;top:0;background:#0e0e0e;cursor:pointer;padding:8px 12px;z-index:5}
+ th:hover{color:var(--moon)}
+ td{padding:0 12px;height:38px;vertical-align:middle}
+ td.pad{padding:8px 12px}
+ tbody tr:nth-child(even){background:var(--zebra)}
  tbody tr:hover{background:var(--hover)}
  tbody tr.sel{background:#12233a}
- .nm{font-weight:600}
- .sub{color:var(--mut);font-size:11.5px}
- .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+ .gut{width:38px;text-align:right;color:#555;font-size:11px;padding:0 8px 0 0;background:#0e0e0e;position:sticky;left:0;cursor:pointer}
+ tbody tr:hover .gut{color:#888}
+ .nm{font-weight:600;cursor:pointer}
+ .nm:hover{color:var(--ocean)}
+ .sub{color:var(--mut);font-size:11px}
  .dot{display:inline-block;width:8px;height:8px;border-radius:50%}
+ /* inline editable cell selects */
+ .csel{width:100%;height:100%;min-width:108px;background:transparent;border:0;color:inherit;font-family:inherit;font-size:12px;font-weight:600;
+   padding:0 6px;cursor:pointer;appearance:none;-webkit-appearance:none;border-radius:0;text-transform:capitalize}
+ .csel:focus{outline:1px solid var(--ocean);outline-offset:-1px}
+ td.edit{padding:0;position:relative}
+ td.edit::after{content:"▾";position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:9px;color:#555;pointer-events:none}
+ .act{display:flex;gap:6px;align-items:center}
+ .ib{border:1px solid var(--line);background:var(--card2);border-radius:7px;width:28px;height:26px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;padding:0}
+ .ib.wa{background:#12351f;border-color:#1c5232}
+ .ib:hover{filter:brightness(1.3)}
  /* drawer */
  #ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:30;display:none}
  #drawer{position:fixed;top:0;right:0;height:100%;width:390px;max-width:100%;background:#0d0d0d;border-left:1px solid var(--line);
@@ -66,7 +84,7 @@
  #gate input{width:100%;margin:14px 0;padding:11px;border-radius:8px;border:1px solid var(--line);background:var(--onyx);color:var(--moon);font-family:inherit}
  #gate button{width:100%;background:var(--ocean);border:none;padding:11px;font-weight:600}
  .err{color:var(--red);font-size:12px;min-height:16px}
- @media(max-width:640px){ th.hide,td.hide{display:none} }
+ @media(max-width:680px){ th.hide,td.hide{display:none} }
 </style></head>
 <body>
 <div id="gate"><div class="box">
@@ -89,17 +107,24 @@
   <div class="chips" id="intChips"></div>
   <span class="count" id="count"></span>
 </div>
+<div class="hint" id="hint" style="display:none">
+  Edit a <b>Stage</b> or <b>Interest</b> cell and it saves instantly. Tap <b>💬</b> to WhatsApp with your opener pre-typed, or a name to open the full record.
+  Replies, emails and retargeting will auto-fill these rows as those channels come online.
+</div>
 
-<div class="tablewrap" id="tablewrap" style="display:none">
+<div class="sheetwrap" id="sheetwrap" style="display:none">
   <table>
     <thead><tr>
+      <th class="gut">#</th>
       <th onclick="sortBy('name')">Lead</th>
       <th class="hide" onclick="sortBy('ad')">Ad</th>
       <th onclick="sortBy('stage')">Stage</th>
       <th onclick="sortBy('interest')">Interest</th>
-      <th class="hide">Replied</th>
+      <th class="hide" onclick="sortBy('replied')">Replied</th>
+      <th class="hide" onclick="sortBy('events')">Events</th>
       <th class="hide" onclick="sortBy('last_activity')">Last activity</th>
       <th class="hide" onclick="sortBy('created')">Captured</th>
+      <th>Do</th>
     </tr></thead>
     <tbody id="rows"></tbody>
   </table>
@@ -111,10 +136,9 @@
 <script>
 const API="https://zyrjljjzzijtbksebxcl.supabase.co/functions/v1/cockpit-api";
 const STAGES=["new","contacted","qualified","booked","won","lost"];
-const INTS=["high","medium","low","unknown"];
+const INTS=["unknown","low","medium","high"];
 const SC={new:"#8a8a8a",contacted:"#0099FF",qualified:"#F5B53D",booked:"#34D399",won:"#22c55e",lost:"#F87171"};
 const IC={high:"#34D399",medium:"#F5B53D",low:"#8a8a8a",unknown:"#3a3a3a"};
-const WINNER="120249356092960478";
 const OPENER=n=>"Hey "+n+", Alex here, founder at Terraflow. You came through our Look Funded ad so I figured I'd reach out directly rather than have a form do it.\n\nQuick one: what are you building right now? If you send me your site or deck I'll tell you straight what's making it read earlier-stage than you actually are, and the two or three things I'd change first.\n\nNo charge, no pitch. Just want to be useful.";
 let PW=localStorage.getItem("tf_cockpit_pw")||"";
 let LEADS=[], fStage="all", fInt="all", sortKey="last_activity", sortDir=-1, curId=null;
@@ -128,19 +152,22 @@ function load(){ call("leads").then(boot).catch(openGate); }
 function openGate(){ document.getElementById("gate").style.display="flex"; }
 function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function fn(n){ return (n||"there").split(" ")[0]; }
+function tint(hex){ return hex+"22"; }
 
 function boot(d){
   if(d.error){ openGate(); return; }
   document.getElementById("gate").style.display="none";
+  ["bar","hint"].forEach(id=>document.getElementById(id).style.display="");
   document.getElementById("bar").style.display="flex";
-  document.getElementById("tablewrap").style.display="block";
+  document.getElementById("sheetwrap").style.display="block";
   LEADS=Array.isArray(d)?d:[];
   chips(); render();
 }
-function chip(v,cur,cb,col){ const on=v===cur; return '<span class="chip'+(on?" on":"")+'" onclick="'+cb+'(\''+v+'\')" '+(col&&on?'style="background:'+col+';border-color:'+col+'"':'')+'>'+v+'</span>'; }
+function cnt(key,v){ return LEADS.filter(l=>l[key]===v).length; }
+function chip(v,cur,cb,n){ const on=v===cur; return '<span class="chip'+(on?" on":"")+'" onclick="'+cb+'(\''+v+'\')">'+v+(n!=null?'<b>'+n+'</b>':'')+'</span>'; }
 function chips(){
-  document.getElementById("stageChips").innerHTML=["all",...STAGES].map(s=>chip(s,fStage,"setStageF")).join("");
-  document.getElementById("intChips").innerHTML=["all",...INTS].map(s=>chip(s,fInt,"setIntF")).join("");
+  document.getElementById("stageChips").innerHTML=chip("all",fStage,"setStageF",LEADS.length)+STAGES.map(s=>chip(s,fStage,"setStageF",cnt("stage",s))).join("");
+  document.getElementById("intChips").innerHTML=chip("all",fInt,"setIntF")+INTS.map(s=>chip(s,fInt,"setIntF",cnt("interest",s))).join("");
 }
 function setStageF(v){ fStage=v; chips(); render(); }
 function setIntF(v){ fInt=v; chips(); render(); }
@@ -150,23 +177,52 @@ function filtered(){
   const q=(document.getElementById("search").value||"").toLowerCase();
   let a=LEADS.filter(l=>(fStage==="all"||l.stage===fStage)&&(fInt==="all"||l.interest===fInt)
     &&(!q||(l.name||"").toLowerCase().includes(q)||(l.ad||"").toLowerCase().includes(q)));
-  a.sort((x,y)=>{ let A=x[sortKey]||"",B=y[sortKey]||""; return (A<B?-1:A>B?1:0)*sortDir; });
+  a.sort((x,y)=>{ let A=x[sortKey],B=y[sortKey]; A=A==null?"":A; B=B==null?"":B; return (A<B?-1:A>B?1:0)*sortDir; });
   return a;
+}
+function cell(kind,id,cur){
+  const opts=(kind==="stage"?STAGES:INTS), C=(kind==="stage"?SC:IC);
+  const col=C[cur]||"#8a8a8a";
+  const sel='<select class="csel" style="background:'+tint(col)+';color:'+(cur==="unknown"?"#8a8a8a":col)+'" '
+    +'onchange="inlineSet(\''+kind+'\',\''+id+'\',this.value,this)" onclick="event.stopPropagation()">'
+    +opts.map(o=>'<option value="'+o+'"'+(o===cur?" selected":"")+'>'+o+'</option>').join("")+'</select>';
+  return '<td class="edit">'+sel+'</td>';
 }
 function render(){
   const a=filtered();
   document.getElementById("count").textContent=a.length+" of "+LEADS.length;
-  document.getElementById("rows").innerHTML=a.map(l=>{
-    const win=l.ad===("TF Look Funded")?"":"";
-    return '<tr onclick="openDetail(\''+l.lead_id+'\')" class="'+(l.lead_id===curId?"sel":"")+'">'
-      +'<td><div class="nm">'+esc(l.name||"(no name)")+' <span class="sub">•••'+esc(l.last4||"")+'</span></div></td>'
-      +'<td class="hide sub">'+esc(l.ad||l.source||"")+'</td>'
-      +'<td><span class="pill" style="background:'+SC[l.stage]+'22;color:'+SC[l.stage]+'">'+l.stage+'</span></td>'
-      +'<td><span class="pill" style="background:'+IC[l.interest]+'22;color:'+(l.interest==="unknown"?"#8a8a8a":IC[l.interest])+'">'+l.interest+'</span></td>'
-      +'<td class="hide">'+(l.replied?'<span class="dot" style="background:#34D399"></span>':'<span class="sub">–</span>')+'</td>'
-      +'<td class="hide sub">'+esc(l.last_activity||"")+'</td>'
-      +'<td class="hide sub">'+esc((l.created||"").slice(5))+'</td></tr>';
+  document.getElementById("rows").innerHTML=a.map((l,i)=>{
+    return '<tr class="'+(l.lead_id===curId?"sel":"")+'">'
+      +'<td class="gut" onclick="openDetail(\''+l.lead_id+'\')">'+(i+1)+'</td>'
+      +'<td class="pad"><span class="nm" onclick="openDetail(\''+l.lead_id+'\')">'+esc(l.name||"(no name)")+'</span> <span class="sub">•••'+esc(l.last4||"")+'</span></td>'
+      +'<td class="pad hide sub" onclick="openDetail(\''+l.lead_id+'\')">'+esc(l.ad||l.source||"")+'</td>'
+      +cell("stage",l.lead_id,l.stage)
+      +cell("interest",l.lead_id,l.interest)
+      +'<td class="pad hide" onclick="openDetail(\''+l.lead_id+'\')">'+(l.replied?'<span class="dot" style="background:#34D399"></span>':'<span class="sub">–</span>')+'</td>'
+      +'<td class="pad hide sub" onclick="openDetail(\''+l.lead_id+'\')">'+(l.events||0)+'</td>'
+      +'<td class="pad hide sub" onclick="openDetail(\''+l.lead_id+'\')">'+esc(l.last_activity||"")+'</td>'
+      +'<td class="pad hide sub" onclick="openDetail(\''+l.lead_id+'\')">'+esc((l.created||"").slice(5))+'</td>'
+      +'<td class="pad"><div class="act">'
+        +'<button class="ib wa" title="WhatsApp" onclick="waRow(\''+l.lead_id+'\',event)">💬</button>'
+        +'<button class="ib" title="Open record" onclick="openDetail(\''+l.lead_id+'\')">⋯</button>'
+      +'</div></td></tr>';
   }).join("");
+}
+
+// inline cell edit — optimistic, saves instantly, no reload flicker
+function inlineSet(kind,id,val,el){
+  const lead=LEADS.find(l=>l.lead_id===id); if(lead){ lead[kind]=val; lead.last_activity="just now"; lead.events=(lead.events||0)+1; }
+  const C=(kind==="stage"?SC:IC), col=C[val]||"#8a8a8a";
+  el.style.background=tint(col); el.style.color=(val==="unknown"?"#8a8a8a":col);
+  chips();
+  call(kind==="stage"?"set_stage":"interest", kind==="stage"?{lead_id:id,stage:val}:{lead_id:id,interest:val});
+}
+
+// open WhatsApp for a row: open tab synchronously (no popup block), then navigate once phone resolves
+function waRow(id,ev){ ev.stopPropagation();
+  const w=window.open("about:blank","_blank");
+  call("detail",{lead_id:id}).then(d=>{ const digits=(d.phone||"").replace(/[^0-9]/g,"");
+    if(w) w.location=digits?("https://wa.me/"+digits+"?text="+encodeURIComponent(OPENER(fn(d.name)))):"about:blank"; });
 }
 
 function openDetail(id){
