@@ -148,20 +148,27 @@ const ENGINE=[
   {match:"gate",nm:"Approval gate",ds:"Any spend move becomes a one-tap Approve/Reject on Telegram.",always:true},
   {match:"erase",nm:"PDPL erase",ds:"One command wipes a person's data everywhere, on request.",always:true},
 ];
-let PW=localStorage.getItem("tf_cockpit_pw")||"";
+let TOK=localStorage.getItem("tf_cockpit_tok")||"";
 
 function call(action,extra){
   return fetch(API,{method:"POST",headers:{"content-type":"application/json"},
-    body:JSON.stringify(Object.assign({password:PW,action},extra||{}))})
+    body:JSON.stringify(Object.assign({token:TOK,action},extra||{}))})
     .then(async r=>{ let b=null; try{ b=await r.json(); }catch(e){}
-      if(r.status===401){ const e=new Error("unauthorized"); e.auth=true; throw e; }
+      if(r.status===401){ TOK=""; localStorage.removeItem("tf_cockpit_tok"); const e=new Error("unauthorized"); e.auth=true; throw e; }
       if(!r.ok){ const e=new Error((b&&b.error)||("http "+r.status)); e.http=r.status; throw e; }
       return b; });
 }
-function login(){ PW=document.getElementById("pw").value.trim();
-  call("data").then(d=>{localStorage.setItem("tf_cockpit_pw",PW);show(d);})
-   .catch(err=>{document.getElementById("gerr").textContent=err.auth?"Wrong password.":"Couldn't reach the engine. Try again.";}); }
-function logout(){ localStorage.removeItem("tf_cockpit_pw"); location.reload(); }
+function doLogin(pw){
+  return fetch(API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"login",password:pw})})
+   .then(async r=>{ let b=null; try{ b=await r.json(); }catch(e){}
+     if(r.ok && b && b.token){ TOK=b.token; localStorage.setItem("tf_cockpit_tok",TOK); localStorage.removeItem("tf_cockpit_pw"); return {ok:true}; }
+     if(r.status===429) return {ok:false,msg:"Too many attempts. Wait a few minutes."};
+     if(r.status===401) return {ok:false,msg:"Wrong password."};
+     return {ok:false,msg:"Couldn't reach the engine. Try again."};
+   }).catch(()=>({ok:false,msg:"Couldn't reach the engine. Try again."})); }
+function login(){ const pw=document.getElementById("pw").value.trim();
+  doLogin(pw).then(r=>{ if(r.ok){ load(); } else { document.getElementById("gerr").textContent=r.msg; } }); }
+function logout(){ if(TOK) call("logout").catch(()=>{}); localStorage.removeItem("tf_cockpit_tok"); localStorage.removeItem("tf_cockpit_pw"); TOK=""; location.reload(); }
 function load(){ call("data").then(show).catch(err=>{ if(err.auth) openGate(); }); }
 function openGate(){ document.getElementById("gate").style.display="flex"; document.getElementById("app").style.display="none"; }
 function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
@@ -269,8 +276,11 @@ function leadCard(l){
 }
 function move(id,stage,el){ el.disabled=true; call("set_stage",{lead_id:id,stage}).then(()=>load()).catch(()=>{el.disabled=false;alert("Failed to move lead");}); }
 
-if(PW){ load(); } else { openGate(); }
+(function init(){ const legacy=localStorage.getItem("tf_cockpit_pw");
+  if(TOK){ load(); }
+  else if(legacy){ doLogin(legacy).then(r=>{ if(r.ok) load(); else openGate(); }); }
+  else openGate(); })();
 document.getElementById("pw").addEventListener("keydown",e=>{ if(e.key==="Enter") login(); });
-setInterval(()=>{ if(PW && document.getElementById("app").style.display!=="none") load(); }, 90000);
+setInterval(()=>{ if(TOK && document.getElementById("app").style.display!=="none") load(); }, 90000);
 </script>
 </body></html>

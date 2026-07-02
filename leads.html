@@ -184,7 +184,7 @@ const OPTS={
 };
 const OPENER=n=>"Hey "+n+", Alex here, founder at Terraflow. You just filled out one of our forms so I figured I'd reach out personally rather than let an autoresponder do it.\n\nQuick one: what are you building right now? If you send me your site or deck I'll tell you straight what's making it read earlier-stage than you actually are, and the two or three things I'd change first.\n\nNo charge, no pitch. Just want to be useful.";
 
-let PW=localStorage.getItem("tf_cockpit_pw")||"";
+let TOK=localStorage.getItem("tf_cockpit_tok")||"";
 let LEADS=[], fStage="all", fInt="all", fDue=false, sortKey="last_activity", sortDir=-1, curId=null;
 
 // ---------- tiny safe DOM builder (never accepts HTML strings) ----------
@@ -217,10 +217,10 @@ function toast(msg,kind){ const t=document.getElementById("toast"); t.textConten
 // ---------- network ----------
 function call(action,extra){
   return fetch(API,{method:"POST",headers:{"content-type":"application/json"},
-    body:JSON.stringify(Object.assign({password:PW,action},extra||{}))})
+    body:JSON.stringify(Object.assign({token:TOK,action},extra||{}))})
    .then(async r=>{
      let b=null; try{ b=await r.json(); }catch(e){}
-     if(r.status===401){ const e=new Error("unauthorized"); e.auth=true; throw e; }
+     if(r.status===401){ TOK=""; localStorage.removeItem("tf_cockpit_tok"); const e=new Error("unauthorized"); e.auth=true; throw e; }
      if(!r.ok){ const e=new Error((b&&b.error)||("http "+r.status)); e.http=r.status; throw e; }
      return b;
    });
@@ -241,10 +241,17 @@ async function doWrite(action,extra,ctl,onFail){
 
 // ---------- auth / boot ----------
 function openGate(){ document.getElementById("gate").style.display="flex"; }
-function login(){ PW=document.getElementById("pw").value.trim();
-  call("leads").then(d=>{ localStorage.setItem("tf_cockpit_pw",PW); boot(d); })
-   .catch(err=>{ document.getElementById("gerr").textContent = err.auth ? "Wrong password." : "Couldn't reach the engine. Try again."; }); }
-function logout(){ localStorage.removeItem("tf_cockpit_pw"); location.reload(); }
+function doLogin(pw){
+  return fetch(API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"login",password:pw})})
+   .then(async r=>{ let b=null; try{ b=await r.json(); }catch(e){}
+     if(r.ok && b && b.token){ TOK=b.token; localStorage.setItem("tf_cockpit_tok",TOK); localStorage.removeItem("tf_cockpit_pw"); return {ok:true}; }
+     if(r.status===429) return {ok:false,msg:"Too many attempts. Wait a few minutes."};
+     if(r.status===401) return {ok:false,msg:"Wrong password."};
+     return {ok:false,msg:"Couldn't reach the engine. Try again."};
+   }).catch(()=>({ok:false,msg:"Couldn't reach the engine. Try again."})); }
+function login(){ const pw=document.getElementById("pw").value.trim();
+  doLogin(pw).then(r=>{ if(r.ok){ load(); } else { document.getElementById("gerr").textContent=r.msg; } }); }
+function logout(){ if(TOK) call("logout").catch(()=>{}); localStorage.removeItem("tf_cockpit_tok"); localStorage.removeItem("tf_cockpit_pw"); TOK=""; location.reload(); }
 function load(){ call("leads").then(boot).catch(err=>{ if(err.auth) openGate(); else toast("Couldn't reach the engine","err"); }); }
 function boot(d){
   document.getElementById("gate").style.display="none";
@@ -499,6 +506,9 @@ document.getElementById("rows").addEventListener("click",e=>{ if(e.target.closes
   const tr=e.target.closest("tr"); if(tr&&tr.dataset.id) openDetail(tr.dataset.id); });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&curId) closeDrawer(); });
 window.addEventListener("hashchange",routeHash);
-if(PW){ load(); } else { openGate(); }
+(function init(){ const legacy=localStorage.getItem("tf_cockpit_pw");
+  if(TOK){ load(); }
+  else if(legacy){ doLogin(legacy).then(r=>{ if(r.ok) load(); else openGate(); }); }
+  else openGate(); })();
 </script>
 </body></html>
