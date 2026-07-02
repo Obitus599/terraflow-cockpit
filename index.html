@@ -2,10 +2,11 @@
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://zyrjljjzzijtbksebxcl.supabase.co; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'">
 <title>Terraflow · Command Center</title>
 <style>
  :root{--onyx:#0A0A0A;--moon:#FAFAFA;--ocean:#0099FF;--gold:#F5B53D;--green:#34D399;--red:#F87171;
-   --mut:#8a8a8a;--line:#1e1e1e;--card:#141414;--card2:#1a1a1a;}
+   --mut:#9a9a9a;--line:#1e1e1e;--card:#141414;--card2:#1a1a1a;}
  *{box-sizing:border-box}
  body{margin:0;background:var(--onyx);color:var(--moon);font-family:'Lexend',-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;font-size:14px}
  a{color:var(--ocean);text-decoration:none}
@@ -23,8 +24,8 @@
  .wrap{max-width:1080px;margin:0 auto;padding:16px}
  .lead-in{color:var(--mut);font-size:12.5px;line-height:1.6;margin:4px 0 18px}
  h2{font-size:11.5px;text-transform:uppercase;letter-spacing:1.3px;color:var(--mut);margin:28px 0 4px;display:flex;align-items:center;gap:8px}
- h2 .h{font-size:11px;color:#666;text-transform:none;letter-spacing:0;font-weight:400}
- .sub{font-size:11.5px;color:#6b6b6b;margin:0 0 12px}
+ h2 .h{font-size:11px;color:#8a8a8a;text-transform:none;letter-spacing:0;font-weight:400}
+ .sub{font-size:11.5px;color:#8a8a8a;margin:0 0 12px}
  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
  .panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px}
@@ -69,11 +70,11 @@
  .eng .dot{flex:0 0 9px;width:9px;height:9px;border-radius:50%;margin-top:5px}
  .eng .nm{font-size:13px;font-weight:600}
  .eng .ds{font-size:11.5px;color:var(--mut);margin-top:1px;line-height:1.45}
- .eng .at{font-size:10.5px;color:#666;white-space:nowrap}
+ .eng .at{font-size:10.5px;color:#8a8a8a;white-space:nowrap}
  .feed{font-size:12.5px}
  .feed .it{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
  .feed .it:last-child{border-bottom:none}
- .feed .when{color:#666;white-space:nowrap;font-size:11px;width:78px;flex:0 0 78px}
+ .feed .when{color:#8a8a8a;white-space:nowrap;font-size:11px;width:78px;flex:0 0 78px}
  .star{color:var(--gold)} .muted{color:var(--mut)}
  .pill{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:5px 11px;font-size:12px;margin:0 8px 8px 0}
  .dotc{display:inline-block;width:7px;height:7px;border-radius:50%}
@@ -101,7 +102,7 @@
 </header>
 
 <div class="wrap" id="app" style="display:none">
-  <div class="lead-in">Every lead from your Meta ads lands here automatically, gets measured against spend, and the engine tells you what's working. Money moves stay gated — you approve them on Telegram. Identities are masked (first name + last 4 only).</div>
+  <div class="lead-in">Every lead from your Meta ads lands here automatically, gets measured against spend, and the engine tells you what's working. Money moves stay gated. You approve them on Telegram. Identities are masked (first name + last 4 only).</div>
 
   <h2>Scoreboard <span class="h" id="sb-h"></span></h2>
   <div class="score" id="score"></div>
@@ -114,7 +115,7 @@
   <h2>What's happening <span class="h">the read, in plain words</span></h2>
   <div class="panel" id="narrative"></div>
 
-  <h2>Pipeline <span class="h">drag a lead's stage — it saves instantly</span></h2>
+  <h2>Pipeline <span class="h">change a lead's stage in the dropdown, it saves instantly</span></h2>
   <div class="board" id="board"></div>
 
   <div class="grid2" style="margin-top:14px">
@@ -152,13 +153,16 @@ let PW=localStorage.getItem("tf_cockpit_pw")||"";
 function call(action,extra){
   return fetch(API,{method:"POST",headers:{"content-type":"application/json"},
     body:JSON.stringify(Object.assign({password:PW,action},extra||{}))})
-    .then(async r=>{ if(r.status===401) throw "unauthorized"; return r.json(); });
+    .then(async r=>{ let b=null; try{ b=await r.json(); }catch(e){}
+      if(r.status===401){ const e=new Error("unauthorized"); e.auth=true; throw e; }
+      if(!r.ok){ const e=new Error((b&&b.error)||("http "+r.status)); e.http=r.status; throw e; }
+      return b; });
 }
 function login(){ PW=document.getElementById("pw").value.trim();
   call("data").then(d=>{localStorage.setItem("tf_cockpit_pw",PW);show(d);})
-   .catch(()=>{document.getElementById("gerr").textContent="Wrong password.";}); }
+   .catch(err=>{document.getElementById("gerr").textContent=err.auth?"Wrong password.":"Couldn't reach the engine. Try again.";}); }
 function logout(){ localStorage.removeItem("tf_cockpit_pw"); location.reload(); }
-function load(){ call("data").then(show).catch(openGate); }
+function load(){ call("data").then(show).catch(err=>{ if(err.auth) openGate(); }); }
 function openGate(){ document.getElementById("gate").style.display="flex"; document.getElementById("app").style.display="none"; }
 function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function money(n){ return "AED "+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:2}); }
@@ -187,7 +191,7 @@ function hbars(obj,total,palette){
 }
 
 function show(d){
-  if(d.error){ openGate(); return; }
+  if(!d||d.error){ return; }
   document.getElementById("gate").style.display="none";
   document.getElementById("app").style.display="block";
   const s=d.scoreboard||{}, cpl=s.leads_7d>0?(s.spend_7d/s.leads_7d):0, cplp=s.leads_prev7d>0?(s.spend_prev7d/s.leads_prev7d):0;
@@ -207,9 +211,9 @@ function show(d){
 
   // narrative
   const nv=d.narrative||{}, rows=[];
-  if(nv.winner) rows.push(['🏆','<b>'+esc(nv.winner.name)+'</b> is carrying the campaign — <b>'+nv.winner.leads+' leads</b> at AED '+nv.winner.cpl+' CPL, '+nv.winner.ctr+'% CTR. <span class="m">Protect it; build variants so you\'re not reliant on one ad.</span>']);
-  if(nv.gem && (!nv.winner || nv.gem.name!==nv.winner.name)) rows.push(['💎','<b>'+esc(nv.gem.name)+'</b> is your cheapest leads — <b>AED '+nv.gem.cpl+' CPL</b> across '+nv.gem.leads+' leads. <span class="m">Worth feeding more budget.</span>']);
-  if((nv.bleeders||[]).length) rows.push(['🩸','<b>Bleeding:</b> '+nv.bleeders.map(b=>esc(b.name)+' ('+money(b.spend)+', 0 leads)').join(', ')+'. <span class="m">Pause candidates — gated, your tap on Telegram.</span>']);
+  if(nv.winner) rows.push(['🏆','<b>'+esc(nv.winner.name)+'</b> is carrying the campaign, <b>'+nv.winner.leads+' leads</b> at AED '+nv.winner.cpl+' CPL, '+nv.winner.ctr+'% CTR. <span class="m">Protect it; build variants so you\'re not reliant on one ad.</span>']);
+  if(nv.gem && (!nv.winner || nv.gem.name!==nv.winner.name)) rows.push(['💎','<b>'+esc(nv.gem.name)+'</b> is your cheapest leads, <b>AED '+nv.gem.cpl+' CPL</b> across '+nv.gem.leads+' leads. <span class="m">Worth feeding more budget.</span>']);
+  if((nv.bleeders||[]).length) rows.push(['🩸','<b>Bleeding:</b> '+nv.bleeders.map(b=>esc(b.name)+' ('+money(b.spend)+', 0 leads)').join(', ')+'. <span class="m">Pause candidates, gated: your tap on Telegram.</span>']);
   const geo=nv.geo||{}, gt=Object.values(geo).reduce((a,b)=>a+b,0), nonuae=gt-(geo.UAE||0);
   if(gt) rows.push([nonuae/gt>0.2?'🌍':'📍', Math.round(nonuae/gt*100)+'% of leads are outside the UAE'+(geo.UK?' (UK '+geo.UK:'')+(geo.India?', India '+geo.India:'')+(geo.UK?')':'')+'. <span class="m">'+(nonuae/gt>0.2?'Tighten targeting to UAE to stop paying for leads that won\'t close.':'Geo looks healthy.')+'</span>']);
   rows.push([nv.max_freq>=2.5?'😴':'💨', nv.max_freq>=2.5?'Some ads are fatiguing (frequency '+nv.max_freq+'). <span class="m">Refresh creative.</span>':'No creative fatigue (frequency '+(nv.max_freq||1)+'). <span class="m">Audience still fresh, you have runway.</span>']);
@@ -237,13 +241,13 @@ function show(d){
   // creative
   const ads=(d.creative||[]).slice(0,12);
   document.getElementById("creative").innerHTML='<table><tr><th>Ad</th><th class="r">Leads</th><th class="r">CPL</th><th class="r">CTR</th><th class="r">Freq</th><th class="r">Spend</th></tr>'
-    +ads.map((a,i)=>'<tr><td>'+(i===0?'<span class="star">★</span> ':'')+esc(a.name)+'</td><td class="r">'+a.leads+'</td><td class="r">'+(a.cpl!=null?'AED '+a.cpl:'—')+'</td><td class="r">'+(a.ctr!=null?a.ctr+'%':'—')+'</td><td class="r">'+(a.freq||'—')+'</td><td class="r">'+money(a.spend)+'</td></tr>').join("")+'</table>';
+    +ads.map((a,i)=>'<tr><td>'+(i===0?'<span class="star">★</span> ':'')+esc(a.name)+'</td><td class="r">'+a.leads+'</td><td class="r">'+(a.cpl!=null?'AED '+a.cpl:'-')+'</td><td class="r">'+(a.ctr!=null?a.ctr+'%':'-')+'</td><td class="r">'+(a.freq||'-')+'</td><td class="r">'+money(a.spend)+'</td></tr>').join("")+'</table>';
 
   // engine map
   const health={}; (d.health||[]).forEach(h=>health[h.job]=h);
   document.getElementById("engine").innerHTML=ENGINE.map(e=>{
     const h=health[e.match]; const ok=e.always||(h&&(h.status==="ok"||h.status==="skip"));
-    const at=e.always?"always on":(h?("ran "+h.at):"—");
+    const at=e.always?"always on":(h?("ran "+h.at):"-");
     return '<div class="eng"><span class="dot" style="background:'+(ok?'#34D399':'#F87171')+'"></span><div style="flex:1"><div class="nm">'+e.nm+'</div><div class="ds">'+e.ds+'</div></div><div class="at">'+at+'</div></div>';
   }).join("");
 
@@ -254,7 +258,7 @@ function show(d){
     return '<div class="it"><span class="when">'+(a.at||"")+'</span><span>'+ic+' '+esc(detail)+'</span></div>';
   }).join("");
 
-  document.getElementById("foot").textContent="Last lead "+(s.last_lead_at?new Date(s.last_lead_at).toLocaleString():"—")+" · data is masked (first name + last 4 only) · nothing leaves Supabase.";
+  document.getElementById("foot").textContent="Last lead "+(s.last_lead_at?new Date(s.last_lead_at).toLocaleString():"-")+" · data is masked (first name + last 4 only) · nothing leaves Supabase.";
 }
 
 function leadCard(l){

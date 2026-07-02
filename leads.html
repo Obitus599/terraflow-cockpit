@@ -2,10 +2,11 @@
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://zyrjljjzzijtbksebxcl.supabase.co; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'">
 <title>Terraflow · Leads</title>
 <style>
  :root{--onyx:#0A0A0A;--moon:#FAFAFA;--ocean:#0099FF;--gold:#F5B53D;--green:#34D399;--red:#F87171;
-   --mut:#8a8a8a;--line:#1e1e1e;--grid:#161616;--card:#141414;--card2:#1a1a1a;--hover:#181818;--zebra:#0d0d0d;}
+   --mut:#9a9a9a;--dim:#7d7d7d;--line:#242424;--grid:#1a1a1a;--card:#141414;--card2:#1c1c1c;--hover:#181818;--zebra:#0e0e0e;}
  *{box-sizing:border-box}
  body{margin:0;background:var(--onyx);color:var(--moon);font-family:'Lexend',-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;font-size:13px}
  a{color:var(--ocean);text-decoration:none}
@@ -17,246 +18,487 @@
  header .sp{flex:1}
  button{font-family:inherit;background:var(--card2);color:var(--moon);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer}
  button:active{transform:scale(.97)}
+ button:disabled{opacity:.5;cursor:default}
  .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line)}
- .bar input.search{background:var(--card);border:1px solid var(--line);border-radius:9px;color:var(--moon);padding:8px 12px;font-family:inherit;font-size:13px;min-width:180px;flex:1;max-width:300px}
+ .bar input.search{background:var(--card);border:1px solid var(--line);border-radius:9px;color:var(--moon);padding:8px 12px;font-family:inherit;font-size:13px;min-width:170px;flex:1;max-width:300px}
  .chips{display:flex;gap:5px;flex-wrap:wrap}
  .chip{padding:5px 10px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--mut);font-size:12px;cursor:pointer;user-select:none}
  .chip.on{background:var(--ocean);border-color:var(--ocean);color:#fff}
- .chip b{font-weight:600;opacity:.8;margin-left:4px}
+ .chip.due.on{background:var(--gold);border-color:var(--gold);color:#0A0A0A}
+ .chip b{font-weight:600;opacity:.85;margin-left:5px}
  .count{color:var(--mut);font-size:12px;margin-left:auto}
- .hint{font-size:11.5px;color:#6a6a6a;padding:0 16px 10px;border-bottom:1px solid var(--line)}
- .hint b{color:#9a9a9a;font-weight:600}
- /* spreadsheet grid */
+ .hint{font-size:12px;color:var(--dim);padding:0 16px 10px;border-bottom:1px solid var(--line)}
+ .hint b{color:var(--mut);font-weight:600}
  .sheetwrap{overflow-x:auto}
  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
  th,td{text-align:left;padding:0;border-bottom:1px solid var(--grid);border-right:1px solid var(--grid);white-space:nowrap}
- th{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);position:sticky;top:0;background:#0e0e0e;cursor:pointer;padding:8px 12px;z-index:5}
+ th{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);position:sticky;top:0;background:#101010;cursor:pointer;padding:8px 12px;z-index:5;user-select:none}
  th:hover{color:var(--moon)}
+ th.nos{cursor:default}
  td{padding:0 12px;height:38px;vertical-align:middle}
  td.pad{padding:8px 12px}
  tbody tr:nth-child(even){background:var(--zebra)}
- tbody tr:hover{background:var(--hover)}
+ tbody tr:hover{background:var(--hover);cursor:pointer}
  tbody tr.sel{background:#12233a}
- .gut{width:38px;text-align:right;color:#555;font-size:11px;padding:0 8px 0 0;background:#0e0e0e;position:sticky;left:0;cursor:pointer}
- tbody tr:hover .gut{color:#888}
- .nm{font-weight:600;cursor:pointer}
- .nm:hover{color:var(--ocean)}
+ .gut{width:40px;text-align:right;color:var(--dim);font-size:11px;padding:0 8px 0 0;background:#101010;position:sticky;left:0}
+ .nm{font-weight:600}
+ tbody tr:hover .nm{color:var(--ocean)}
  .sub{color:var(--mut);font-size:11px}
  .dot{display:inline-block;width:8px;height:8px;border-radius:50%}
- /* inline editable cell selects */
- .csel{width:100%;height:100%;min-width:108px;background:transparent;border:0;color:inherit;font-family:inherit;font-size:12px;font-weight:600;
-   padding:0 6px;cursor:pointer;appearance:none;-webkit-appearance:none;border-radius:0;text-transform:capitalize}
- .csel:focus{outline:1px solid var(--ocean);outline-offset:-1px}
- td.edit{padding:0;position:relative}
- td.edit::after{content:"▾";position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:9px;color:#555;pointer-events:none}
+ .tag{display:inline-block;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:1px 5px;border-radius:5px;margin-left:6px;vertical-align:middle}
+ .tag.dup{background:#3a2a12;color:var(--gold)}
+ .tag.due{background:#3a1414;color:var(--red)}
+ .csel{width:100%;min-width:104px;background:transparent;border:1px solid transparent;color:inherit;font-family:inherit;font-size:12px;font-weight:600;
+   padding:4px 6px;cursor:pointer;appearance:none;-webkit-appearance:none;border-radius:7px;text-transform:capitalize}
+ .csel:hover{border-color:var(--line)}
+ .csel:focus{outline:none;border-color:var(--ocean)}
+ td.edit{padding:0 6px;position:relative}
  .act{display:flex;gap:6px;align-items:center}
- .ib{border:1px solid var(--line);background:var(--card2);border-radius:7px;width:28px;height:26px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;padding:0}
+ .ib{border:1px solid var(--line);background:var(--card2);border-radius:7px;width:30px;height:27px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;padding:0}
  .ib.wa{background:#12351f;border-color:#1c5232}
- .ib:hover{filter:brightness(1.3)}
- /* drawer */
- #ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:30;display:none}
- #drawer{position:fixed;top:0;right:0;height:100%;width:390px;max-width:100%;background:#0d0d0d;border-left:1px solid var(--line);
-   z-index:31;transform:translateX(100%);transition:transform .18s ease;overflow-y:auto;padding:18px}
+ .ib:hover{filter:brightness(1.35)}
+ .empty{padding:40px 16px;text-align:center;color:var(--mut)}
+ /* drawer / profile */
+ #ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:30;display:none}
+ #drawer{position:fixed;top:0;right:0;height:100%;width:440px;max-width:100%;background:#0c0c0c;border-left:1px solid var(--line);
+   z-index:31;transform:translateX(100%);transition:transform .18s ease;overflow-y:auto}
  #drawer.open{transform:translateX(0)}
+ .pwrap{padding:18px}
  .dhead{display:flex;align-items:flex-start;gap:10px}
- .dhead .x{margin-left:auto;cursor:pointer;color:var(--mut);font-size:20px;line-height:1}
- .dname{font-size:19px;font-weight:700}
- .dmeta{color:var(--mut);font-size:12px;margin-top:2px}
- .actions{display:flex;gap:8px;margin:14px 0}
- .actions a,.actions button{flex:1;text-align:center;padding:9px;border-radius:9px;font-size:12.5px;font-weight:600;border:1px solid var(--line)}
- .actions .wa{background:#25D366;color:#062e13;border:none}
- .actions .em{background:var(--card2);color:var(--moon)}
- .field{margin:14px 0}
- .field label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);display:block;margin-bottom:6px}
- .field select,.field textarea{width:100%;background:var(--onyx);color:var(--moon);border:1px solid var(--line);border-radius:8px;padding:9px;font-family:inherit;font-size:13px}
- .contact{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.9}
- .contact .cp{color:var(--mut);cursor:pointer;float:right;font-size:11px}
- .tl{margin-top:8px;border-left:2px solid var(--line);padding-left:14px}
+ .dhead .x{margin-left:auto;cursor:pointer;color:var(--mut);font-size:22px;line-height:1;background:none;border:none;padding:0}
+ .dname{font-size:21px;font-weight:700;line-height:1.15}
+ .dmeta{color:var(--mut);font-size:12px;margin-top:3px}
+ .badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+ .badge{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--card2);color:var(--mut);border:1px solid var(--line)}
+ .badge.warn{background:#3a2a12;color:var(--gold);border-color:#4a3416}
+ .badge.alert{background:#3a1414;color:var(--red);border-color:#4a1a1a}
+ .actions{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}
+ .btn{flex:1;min-width:96px;text-align:center;padding:10px;border-radius:9px;font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--card2);color:var(--moon);cursor:pointer}
+ .btn.wa{background:#25D366;color:#062e13;border:none}
+ .btn.em{background:var(--card2)}
+ .btn.mini{flex:0 0 auto;min-width:0;padding:8px 12px;font-size:12px}
+ .psec{margin:16px 0;padding-top:14px;border-top:1px solid var(--grid)}
+ .plabel{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--mut);margin-bottom:10px;font-weight:600}
+ .contact{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px 12px;font-size:12.5px}
+ .crow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--grid)}
+ .crow:last-child{border-bottom:none}
+ .crow .k{color:var(--mut);width:52px;flex:0 0 52px}
+ .crow .v{flex:1;word-break:break-all}
+ .cp{margin-left:auto;background:none;border:1px solid var(--line);color:var(--mut);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer}
+ .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ .pfield{display:flex;flex-direction:column;gap:4px}
+ .pfl{font-size:10.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+ .pf{width:100%;background:var(--onyx);color:var(--moon);border:1px solid var(--line);border-radius:8px;padding:9px;font-family:inherit;font-size:13px}
+ textarea.pf{resize:vertical;min-height:38px}
+ .kv{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:5px 0}
+ .kv .k{color:var(--mut)}
+ .kv .v{text-align:right}
+ .savebtn{background:var(--ocean);border:none;color:#fff;padding:9px 14px;border-radius:8px;font-weight:600;margin-top:10px;cursor:pointer;width:100%}
+ .fans{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 12px}
+ .fans .kv{border-bottom:1px solid var(--grid)}
+ .fans .kv:last-child{border-bottom:none}
+ .muted{color:var(--dim);font-size:12px}
+ .tl{margin-top:6px;border-left:2px solid var(--line);padding-left:14px}
  .tl .ev{position:relative;padding:8px 0}
  .tl .ev::before{content:"";position:absolute;left:-19px;top:12px;width:8px;height:8px;border-radius:50%;background:var(--ocean)}
  .tl .ty{font-size:12.5px;font-weight:600}
  .tl .no{font-size:12.5px;color:#cfcfcf;margin-top:2px}
- .tl .wh{font-size:10.5px;color:#666;margin-top:2px}
- .savebtn{background:var(--ocean);border:none;color:#fff;width:100%;padding:9px;border-radius:8px;font-weight:600;margin-top:8px}
- /* login */
- #gate{position:fixed;inset:0;background:var(--onyx);display:flex;align-items:center;justify-content:center;z-index:50}
+ .tl .wh{font-size:10.5px;color:var(--dim);margin-top:2px}
+ /* login + toast */
+ #gate{position:fixed;inset:0;background:var(--onyx);display:none;align-items:center;justify-content:center;z-index:50}
  #gate .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px;width:300px;text-align:center}
  #gate input{width:100%;margin:14px 0;padding:11px;border-radius:8px;border:1px solid var(--line);background:var(--onyx);color:var(--moon);font-family:inherit}
  #gate button{width:100%;background:var(--ocean);border:none;padding:11px;font-weight:600}
  .err{color:var(--red);font-size:12px;min-height:16px}
- @media(max-width:680px){ th.hide,td.hide{display:none} }
+ #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#1b1b1b;border:1px solid var(--line);color:var(--moon);
+   padding:10px 16px;border-radius:10px;font-size:12.5px;opacity:0;pointer-events:none;transition:all .18s;z-index:60;max-width:90%}
+ #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+ #toast.err{border-color:var(--red);color:#ffd7d7}
+ @media(max-width:680px){ th.hide,td.hide{display:none} #drawer{width:100%} .btn{min-width:calc(50% - 4px)} }
 </style></head>
 <body>
 <div id="gate"><div class="box">
   <div style="font-weight:700;letter-spacing:.4px">Terraflow Leads</div>
   <input id="pw" type="password" placeholder="Access password" autocomplete="current-password">
   <div class="err" id="gerr"></div>
-  <button onclick="login()">Enter</button>
+  <button id="loginBtn">Enter</button>
 </div></div>
 
 <header>
   <div class="nav"><a href="./index.html">Overview</a><a href="./leads.html" class="on">Leads</a></div>
   <span class="sp"></span>
-  <button onclick="load()">Refresh</button>
-  <button onclick="logout()">Lock</button>
+  <button id="refreshBtn">Refresh</button>
+  <button id="lockBtn">Lock</button>
 </header>
 
 <div class="bar" id="bar" style="display:none">
-  <input class="search" id="search" placeholder="Search name or ad…" oninput="render()">
+  <input class="search" id="search" placeholder="Search name, ad or last-4...">
   <div class="chips" id="stageChips"></div>
   <div class="chips" id="intChips"></div>
+  <div class="chips" id="dueChips"></div>
   <span class="count" id="count"></span>
 </div>
 <div class="hint" id="hint" style="display:none">
-  Edit a <b>Stage</b> or <b>Interest</b> cell and it saves instantly. Tap <b>💬</b> to WhatsApp with your opener pre-typed, or a name to open the full record.
-  Replies, emails and retargeting will auto-fill these rows as those channels come online.
+  Edit a <b>Stage</b> or <b>Interest</b> cell and it saves instantly. Tap <b>💬</b> to WhatsApp (opener pre-typed, logs the touch and moves new to contacted), or click a row to open the full <b>profile</b>.
+  As WhatsApp, email and retargeting come online they auto-fill each profile's timeline.
 </div>
 
 <div class="sheetwrap" id="sheetwrap" style="display:none">
   <table>
-    <thead><tr>
-      <th class="gut">#</th>
-      <th onclick="sortBy('name')">Lead</th>
-      <th class="hide" onclick="sortBy('ad')">Ad</th>
-      <th onclick="sortBy('stage')">Stage</th>
-      <th onclick="sortBy('interest')">Interest</th>
-      <th class="hide" onclick="sortBy('replied')">Replied</th>
-      <th class="hide" onclick="sortBy('events')">Events</th>
-      <th class="hide" onclick="sortBy('last_activity')">Last activity</th>
-      <th class="hide" onclick="sortBy('created')">Captured</th>
-      <th>Do</th>
+    <thead><tr id="head">
+      <th class="nos gut">#</th>
+      <th data-k="name">Lead</th>
+      <th class="hide" data-k="ad">Ad</th>
+      <th data-k="stage">Stage</th>
+      <th data-k="interest">Interest</th>
+      <th class="hide" data-k="replied">Replied</th>
+      <th class="hide" data-k="events">Events</th>
+      <th class="hide" data-k="last_activity">Last activity</th>
+      <th class="hide" data-k="created">Captured</th>
+      <th class="nos">Do</th>
     </tr></thead>
     <tbody id="rows"></tbody>
   </table>
 </div>
 
-<div id="ov" onclick="closeDrawer()"></div>
-<div id="drawer"></div>
+<div id="ov"></div>
+<div id="drawer"><div class="pwrap" id="pwrap"></div></div>
+<div id="toast"></div>
 
 <script>
 const API="https://zyrjljjzzijtbksebxcl.supabase.co/functions/v1/cockpit-api";
 const STAGES=["new","contacted","qualified","booked","won","lost"];
 const INTS=["unknown","low","medium","high"];
-const SC={new:"#8a8a8a",contacted:"#0099FF",qualified:"#F5B53D",booked:"#34D399",won:"#22c55e",lost:"#F87171"};
-const IC={high:"#34D399",medium:"#F5B53D",low:"#8a8a8a",unknown:"#3a3a3a"};
-const OPENER=n=>"Hey "+n+", Alex here, founder at Terraflow. You came through our Look Funded ad so I figured I'd reach out directly rather than have a form do it.\n\nQuick one: what are you building right now? If you send me your site or deck I'll tell you straight what's making it read earlier-stage than you actually are, and the two or three things I'd change first.\n\nNo charge, no pitch. Just want to be useful.";
-let PW=localStorage.getItem("tf_cockpit_pw")||"";
-let LEADS=[], fStage="all", fInt="all", sortKey="last_activity", sortDir=-1, curId=null;
+const SC={new:"#9a9a9a",contacted:"#0099FF",qualified:"#F5B53D",booked:"#34D399",won:"#22c55e",lost:"#F87171"};
+const IC={high:"#34D399",medium:"#F5B53D",low:"#9a9a9a",unknown:"#5a5a5a"};
+const LABELS={name:"Lead",ad:"Ad",stage:"Stage",interest:"Interest",replied:"Replied",events:"Events",last_activity:"Last activity",created:"Captured"};
+const EVLABEL={form_submitted:"Submitted the form",stage_changed:"Stage changed",interest_changed:"Interest changed",
+  note:"Note",wa_sent:"WhatsApp sent",wa_replied:"Replied on WhatsApp",contacted:"Marked contacted",call_logged:"Call logged",
+  qualification_changed:"Qualification updated",next_action_set:"Follow-up set",
+  email_sent:"Email sent",email_opened:"Opened email",email_clicked:"Clicked email",added_to_audience:"Added to retargeting"};
+const OPTS={
+  project_stage:[["","stage..."],["idea","idea"],["early","early / MVP"],["growth","growing"],["established","established"]],
+  budget_band_aed:[["","budget..."],["under 5k","under 5k"],["5k-15k","5k to 15k"],["15k-50k","15k to 50k"],["50k+","50k plus"]],
+  timeline:[["","timeline..."],["now","now"],["1-3 months","1 to 3 months"],["3-6 months","3 to 6 months"],["exploring","just exploring"]],
+  decision_maker:[["","decision..."],["yes","they decide"],["shared","shared call"],["no","not the decider"]]
+};
+const OPENER=n=>"Hey "+n+", Alex here, founder at Terraflow. You just filled out one of our forms so I figured I'd reach out personally rather than let an autoresponder do it.\n\nQuick one: what are you building right now? If you send me your site or deck I'll tell you straight what's making it read earlier-stage than you actually are, and the two or three things I'd change first.\n\nNo charge, no pitch. Just want to be useful.";
 
-function call(action,extra){ return fetch(API,{method:"POST",headers:{"content-type":"application/json"},
-  body:JSON.stringify(Object.assign({password:PW,action},extra||{}))}).then(async r=>{ if(r.status===401) throw "unauthorized"; return r.json(); }); }
-function login(){ PW=document.getElementById("pw").value.trim();
-  call("leads").then(d=>{localStorage.setItem("tf_cockpit_pw",PW);boot(d);}).catch(()=>{document.getElementById("gerr").textContent="Wrong password.";}); }
-function logout(){ localStorage.removeItem("tf_cockpit_pw"); location.reload(); }
-function load(){ call("leads").then(boot).catch(openGate); }
-function openGate(){ document.getElementById("gate").style.display="flex"; }
-function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+let PW=localStorage.getItem("tf_cockpit_pw")||"";
+let LEADS=[], fStage="all", fInt="all", fDue=false, sortKey="last_activity", sortDir=-1, curId=null;
+
+// ---------- tiny safe DOM builder (never accepts HTML strings) ----------
+function h(tag,a,kids){
+  const e=document.createElement(tag); a=a||{};
+  if(a.class) e.className=a.class;
+  if(a.text!=null) e.textContent=a.text;
+  if(a.id) e.id=a.id;
+  if(a.type) e.type=a.type;
+  if(a.href!=null) e.href=a.href;
+  if(a.value!=null) e.value=a.value;
+  if(a.placeholder) e.placeholder=a.placeholder;
+  if(a.title) e.title=a.title;
+  if(a.target) e.target=a.target;
+  if(a.rows) e.rows=a.rows;
+  if(a.disabled) e.disabled=true;
+  if(a.style) e.style.cssText=a.style;
+  if(a.data) for(const k in a.data) e.dataset[k]=a.data[k];
+  if(a.on) for(const ev in a.on) e.addEventListener(ev,a.on[ev]);
+  if(kids!=null) (Array.isArray(kids)?kids:[kids]).forEach(c=>{ if(c==null||c===false) return;
+    e.appendChild(typeof c==="object"?c:document.createTextNode(String(c))); });
+  return e;
+}
+function clear(el){ while(el.firstChild) el.removeChild(el.firstChild); }
 function fn(n){ return (n||"there").split(" ")[0]; }
 function tint(hex){ return hex+"22"; }
+function toast(msg,kind){ const t=document.getElementById("toast"); t.textContent=msg;
+  t.className="show"+(kind==="err"?" err":""); clearTimeout(t._t); t._t=setTimeout(()=>{t.className="";},2600); }
 
+// ---------- network ----------
+function call(action,extra){
+  return fetch(API,{method:"POST",headers:{"content-type":"application/json"},
+    body:JSON.stringify(Object.assign({password:PW,action},extra||{}))})
+   .then(async r=>{
+     let b=null; try{ b=await r.json(); }catch(e){}
+     if(r.status===401){ const e=new Error("unauthorized"); e.auth=true; throw e; }
+     if(!r.ok){ const e=new Error((b&&b.error)||("http "+r.status)); e.http=r.status; throw e; }
+     return b;
+   });
+}
+// write with optimistic rollback + auth/network distinction. resolves true/false.
+async function doWrite(action,extra,ctl,onFail){
+  if(ctl) ctl.disabled=true;
+  try{
+    const res=await call(action,extra);
+    if(res && res.error) throw new Error(res.error);
+    return true;
+  }catch(err){
+    if(err.auth){ openGate(); }
+    else { toast("Didn't save, reverted","err"); if(onFail) onFail(); }
+    return false;
+  }finally{ if(ctl) ctl.disabled=false; }
+}
+
+// ---------- auth / boot ----------
+function openGate(){ document.getElementById("gate").style.display="flex"; }
+function login(){ PW=document.getElementById("pw").value.trim();
+  call("leads").then(d=>{ localStorage.setItem("tf_cockpit_pw",PW); boot(d); })
+   .catch(err=>{ document.getElementById("gerr").textContent = err.auth ? "Wrong password." : "Couldn't reach the engine. Try again."; }); }
+function logout(){ localStorage.removeItem("tf_cockpit_pw"); location.reload(); }
+function load(){ call("leads").then(boot).catch(err=>{ if(err.auth) openGate(); else toast("Couldn't reach the engine","err"); }); }
 function boot(d){
-  if(d.error){ openGate(); return; }
   document.getElementById("gate").style.display="none";
-  ["bar","hint"].forEach(id=>document.getElementById(id).style.display="");
   document.getElementById("bar").style.display="flex";
+  document.getElementById("hint").style.display="";
   document.getElementById("sheetwrap").style.display="block";
   LEADS=Array.isArray(d)?d:[];
-  chips(); render();
+  chips(); updateHead(); render(); routeHash();
 }
-function cnt(key,v){ return LEADS.filter(l=>l[key]===v).length; }
-function chip(v,cur,cb,n){ const on=v===cur; return '<span class="chip'+(on?" on":"")+'" onclick="'+cb+'(\''+v+'\')">'+v+(n!=null?'<b>'+n+'</b>':'')+'</span>'; }
-function chips(){
-  document.getElementById("stageChips").innerHTML=chip("all",fStage,"setStageF",LEADS.length)+STAGES.map(s=>chip(s,fStage,"setStageF",cnt("stage",s))).join("");
-  document.getElementById("intChips").innerHTML=chip("all",fInt,"setIntF")+INTS.map(s=>chip(s,fInt,"setIntF",cnt("interest",s))).join("");
-}
-function setStageF(v){ fStage=v; chips(); render(); }
-function setIntF(v){ fInt=v; chips(); render(); }
-function sortBy(k){ if(sortKey===k) sortDir=-sortDir; else {sortKey=k;sortDir=-1;} render(); }
 
+// ---------- filters + chips ----------
+function cnt(key,v){ return LEADS.filter(l=>l[key]===v).length; }
+function dueCount(){ return LEADS.filter(l=>l.due).length; }
+function chip(label,on,cb,n,cls){ return h("span",{class:"chip"+(on?" on":"")+(cls?" "+cls:""),on:{click:cb}},
+  [document.createTextNode(label), n!=null?h("b",{text:String(n)}):null]); }
+function chips(){
+  const sc=document.getElementById("stageChips"); clear(sc);
+  sc.appendChild(chip("all",fStage==="all",()=>{fStage="all";chips();render();},LEADS.length));
+  STAGES.forEach(s=>sc.appendChild(chip(s,fStage===s,()=>{fStage=s;chips();render();},cnt("stage",s))));
+  const ic=document.getElementById("intChips"); clear(ic);
+  ic.appendChild(chip("any",fInt==="all",()=>{fInt="all";chips();render();}));
+  INTS.forEach(s=>ic.appendChild(chip(s,fInt===s,()=>{fInt=s;chips();render();},cnt("interest",s))));
+  const dc=document.getElementById("dueChips"); clear(dc);
+  dc.appendChild(chip("due",fDue,()=>{fDue=!fDue;chips();render();},dueCount(),"due"));
+}
+const SORTVAL={ name:l=>(l.name||"").toLowerCase(), ad:l=>(l.ad||"").toLowerCase(),
+  stage:l=>STAGES.indexOf(l.stage), interest:l=>INTS.indexOf(l.interest),
+  replied:l=>l.replied?1:0, events:l=>l.events||0,
+  last_activity:l=>Number(l.last_activity_iso)||0, created:l=>Number(l.created_iso)||0 };
 function filtered(){
   const q=(document.getElementById("search").value||"").toLowerCase();
-  let a=LEADS.filter(l=>(fStage==="all"||l.stage===fStage)&&(fInt==="all"||l.interest===fInt)
-    &&(!q||(l.name||"").toLowerCase().includes(q)||(l.ad||"").toLowerCase().includes(q)));
-  a.sort((x,y)=>{ let A=x[sortKey],B=y[sortKey]; A=A==null?"":A; B=B==null?"":B; return (A<B?-1:A>B?1:0)*sortDir; });
+  let a=LEADS.filter(l=>(fStage==="all"||l.stage===fStage)&&(fInt==="all"||l.interest===fInt)&&(!fDue||l.due)
+    &&(!q||(l.name||"").toLowerCase().includes(q)||(l.ad||"").toLowerCase().includes(q)||(l.last4||"").includes(q)));
+  const f=SORTVAL[sortKey]||SORTVAL.last_activity;
+  a.sort((x,y)=>{ const A=f(x),B=f(y); return (A<B?-1:A>B?1:0)*sortDir; });
   return a;
 }
-function cell(kind,id,cur){
-  const opts=(kind==="stage"?STAGES:INTS), C=(kind==="stage"?SC:IC);
-  const col=C[cur]||"#8a8a8a";
-  const sel='<select class="csel" style="background:'+tint(col)+';color:'+(cur==="unknown"?"#8a8a8a":col)+'" '
-    +'onchange="inlineSet(\''+kind+'\',\''+id+'\',this.value,this)" onclick="event.stopPropagation()">'
-    +opts.map(o=>'<option value="'+o+'"'+(o===cur?" selected":"")+'>'+o+'</option>').join("")+'</select>';
-  return '<td class="edit">'+sel+'</td>';
+function sortBy(k){ if(sortKey===k) sortDir=-sortDir; else {sortKey=k;sortDir=(k==="name"||k==="ad")?1:-1;} updateHead(); render(); }
+function updateHead(){ document.querySelectorAll("#head th[data-k]").forEach(th=>{
+  const k=th.dataset.k; th.textContent=LABELS[k]+(k===sortKey?(sortDir<0?"  ▼":"  ▲"):""); }); }
+
+// ---------- grid ----------
+function paintCell(sel,kind,val){ const C=kind==="stage"?SC:IC, col=C[val]||"#9a9a9a";
+  sel.style.background=tint(col); sel.style.color=(val==="unknown"?"#9a9a9a":col); }
+function editCell(kind,l){
+  const td=h("td",{class:"edit"});
+  const sel=h("select",{class:"csel"});
+  (kind==="stage"?STAGES:INTS).forEach(o=>{ const op=h("option",{value:o,text:o}); if(o===l[kind]) op.selected=true; sel.appendChild(op); });
+  paintCell(sel,kind,l[kind]);
+  sel.addEventListener("click",e=>e.stopPropagation());
+  sel.addEventListener("change",()=>inlineSet(kind,l.lead_id,sel.value,sel));
+  td.appendChild(sel); return td;
+}
+function inlineSet(kind,id,val,el){
+  const lead=LEADS.find(l=>l.lead_id===id); const prev=lead?lead[kind]:null;
+  if(lead){ lead[kind]=val; lead.last_activity_iso=Date.now()/1000; }
+  paintCell(el,kind,val); chips();
+  doWrite(kind==="stage"?"set_stage":"interest", kind==="stage"?{lead_id:id,stage:val}:{lead_id:id,interest:val}, el,
+    ()=>{ if(lead){ lead[kind]=prev; } el.value=prev; paintCell(el,kind,prev); chips(); });
 }
 function render(){
   const a=filtered();
   document.getElementById("count").textContent=a.length+" of "+LEADS.length;
-  document.getElementById("rows").innerHTML=a.map((l,i)=>{
-    return '<tr class="'+(l.lead_id===curId?"sel":"")+'">'
-      +'<td class="gut" onclick="openDetail(\''+l.lead_id+'\')">'+(i+1)+'</td>'
-      +'<td class="pad"><span class="nm" onclick="openDetail(\''+l.lead_id+'\')">'+esc(l.name||"(no name)")+'</span> <span class="sub">•••'+esc(l.last4||"")+'</span></td>'
-      +'<td class="pad hide sub" onclick="openDetail(\''+l.lead_id+'\')">'+esc(l.ad||l.source||"")+'</td>'
-      +cell("stage",l.lead_id,l.stage)
-      +cell("interest",l.lead_id,l.interest)
-      +'<td class="pad hide" onclick="openDetail(\''+l.lead_id+'\')">'+(l.replied?'<span class="dot" style="background:#34D399"></span>':'<span class="sub">–</span>')+'</td>'
-      +'<td class="pad hide sub" onclick="openDetail(\''+l.lead_id+'\')">'+(l.events||0)+'</td>'
-      +'<td class="pad hide sub" onclick="openDetail(\''+l.lead_id+'\')">'+esc(l.last_activity||"")+'</td>'
-      +'<td class="pad hide sub" onclick="openDetail(\''+l.lead_id+'\')">'+esc((l.created||"").slice(5))+'</td>'
-      +'<td class="pad"><div class="act">'
-        +'<button class="ib wa" title="WhatsApp" onclick="waRow(\''+l.lead_id+'\',event)">💬</button>'
-        +'<button class="ib" title="Open record" onclick="openDetail(\''+l.lead_id+'\')">⋯</button>'
-      +'</div></td></tr>';
-  }).join("");
+  const tb=document.getElementById("rows"); clear(tb);
+  if(!a.length){ const tr=h("tr"); tr.appendChild(h("td",{class:"empty",attr:{colspan:"10"},
+    text:LEADS.length? "No leads match these filters." : "No leads yet."})); tb.appendChild(tr); return; }
+  const frag=document.createDocumentFragment();
+  a.forEach((l,i)=>{
+    const tr=h("tr",{data:{id:l.lead_id}}); if(l.lead_id===curId) tr.className="sel";
+    tr.appendChild(h("td",{class:"gut",text:String(i+1)}));
+    const nc=h("td",{class:"pad"});
+    nc.appendChild(h("span",{class:"nm",text:l.name||"(no name)"}));
+    nc.appendChild(h("span",{class:"sub",text:" ..."+(l.last4||"")}));
+    if(l.dup_count>1) nc.appendChild(h("span",{class:"tag dup",text:"dup",title:"Shares a phone with "+(l.dup_count-1)+" other lead(s)"}));
+    if(l.due) nc.appendChild(h("span",{class:"tag due",text:"due",title:"Follow-up due "+(l.next_action_at||"")}));
+    tr.appendChild(nc);
+    tr.appendChild(h("td",{class:"pad hide sub",text:l.ad||l.source||""}));
+    tr.appendChild(editCell("stage",l));
+    tr.appendChild(editCell("interest",l));
+    const rc=h("td",{class:"pad hide"});
+    rc.appendChild(l.replied?h("span",{class:"dot",style:"background:#34D399"}):h("span",{class:"sub",text:"–"}));
+    tr.appendChild(rc);
+    tr.appendChild(h("td",{class:"pad hide sub",text:String(l.events||0)}));
+    tr.appendChild(h("td",{class:"pad hide sub",text:l.last_activity||""}));
+    tr.appendChild(h("td",{class:"pad hide sub",text:(l.created||"").slice(5)}));
+    const act=h("td",{class:"pad"});
+    const wrap=h("div",{class:"act"});
+    wrap.appendChild(h("button",{class:"ib wa",title:"WhatsApp",text:"💬",on:{click:e=>{e.stopPropagation();waRow(l.lead_id);}}}));
+    wrap.appendChild(h("button",{class:"ib",title:"Open profile",text:"⋯",on:{click:e=>{e.stopPropagation();openDetail(l.lead_id);}}}));
+    act.appendChild(wrap); tr.appendChild(act);
+    frag.appendChild(tr);
+  });
+  tb.appendChild(frag);
 }
 
-// inline cell edit — optimistic, saves instantly, no reload flicker
-function inlineSet(kind,id,val,el){
-  const lead=LEADS.find(l=>l.lead_id===id); if(lead){ lead[kind]=val; lead.last_activity="just now"; lead.events=(lead.events||0)+1; }
-  const C=(kind==="stage"?SC:IC), col=C[val]||"#8a8a8a";
-  el.style.background=tint(col); el.style.color=(val==="unknown"?"#8a8a8a":col);
-  chips();
-  call(kind==="stage"?"set_stage":"interest", kind==="stage"?{lead_id:id,stage:val}:{lead_id:id,interest:val});
+// ---------- WhatsApp ----------
+function logContacted(id,stage){
+  call("event",{lead_id:id,type:"wa_sent",channel:"whatsapp",note:"opener sent"}).catch(()=>{});
+  if(stage==="new"){ call("set_stage",{lead_id:id,stage:"contacted"})
+    .then(()=>{ const l=LEADS.find(x=>x.lead_id===id); if(l){l.stage="contacted";} render(); chips(); }).catch(()=>{}); }
 }
-
-// open WhatsApp for a row: open tab synchronously (no popup block), then navigate once phone resolves
-function waRow(id,ev){ ev.stopPropagation();
+function waRow(id){
   const w=window.open("about:blank","_blank");
-  call("detail",{lead_id:id}).then(d=>{ const digits=(d.phone||"").replace(/[^0-9]/g,"");
-    if(w) w.location=digits?("https://wa.me/"+digits+"?text="+encodeURIComponent(OPENER(fn(d.name)))):"about:blank"; });
+  call("detail",{lead_id:id}).then(d=>{
+    if(d&&d.error){ if(w) w.close(); toast("Couldn't open WhatsApp","err"); return; }
+    const digits=(d.phone||"").replace(/[^0-9]/g,"");
+    if(!digits){ if(w) w.close(); toast("No phone number on this lead","err"); return; }
+    if(w) w.location.href="https://wa.me/"+digits+"?text="+encodeURIComponent(OPENER(fn(d.name)));
+    logContacted(id,d.stage);
+  }).catch(err=>{ if(w) w.close(); if(err.auth) openGate(); else toast("Couldn't reach the engine","err"); });
 }
 
-function openDetail(id){
-  curId=id; render();
+// ---------- deep-linking ----------
+function setHash(id){ try{ history.replaceState(null,"", id?("#lead="+id):(location.pathname+location.search)); }catch(e){} }
+function routeHash(){ const m=(location.hash||"").match(/lead=([^&]+)/);
+  if(m){ if(m[1]!==curId) openDetail(m[1],true); } else if(curId){ closeDrawer(true); } }
+
+// ---------- profile drawer ----------
+function copyRow(k,val){ return h("div",{class:"crow"},[ h("span",{class:"k",text:k}), h("span",{class:"v",text:val||"-"}),
+  val?h("button",{class:"cp",text:"copy",on:{click:()=>{ if(navigator.clipboard) navigator.clipboard.writeText(val); toast("Copied "+k.toLowerCase()); }}}):null ]); }
+function statusSelect(kind,d){
+  const sel=h("select",{class:"pf"});
+  (kind==="stage"?STAGES:INTS).forEach(o=>{ const op=h("option",{value:o,text:o}); if(o===d[kind]) op.selected=true; sel.appendChild(op); });
+  const prev=d[kind];
+  sel.addEventListener("change",()=>{ const val=sel.value;
+    doWrite(kind==="stage"?"set_stage":"interest", kind==="stage"?{lead_id:d.lead_id,stage:val}:{lead_id:d.lead_id,interest:val}, sel,
+      ()=>{ sel.value=prev; }).then(ok=>{ if(ok){ d[kind]=val; const l=LEADS.find(x=>x.lead_id===d.lead_id); if(l){l[kind]=val;}
+        render(); chips(); toast((kind==="stage"?"Stage":"Interest")+" updated"); } }); });
+  return sel;
+}
+function qualSelect(key,val){ const sel=h("select",{class:"pf"});
+  OPTS[key].forEach(o=>{ const op=h("option",{value:o[0],text:o[1]}); if(o[0]===(val||"")) op.selected=true; sel.appendChild(op); });
+  return sel; }
+function openDetail(id,fromRoute){
+  curId=id; if(!fromRoute) setHash(id); render();
   call("detail",{lead_id:id}).then(d=>{
-    if(d.error){alert(d.error);return;}
-    const digits=(d.phone||"").replace(/[^0-9]/g,"");
-    const wa=digits?("https://wa.me/"+digits+"?text="+encodeURIComponent(OPENER(fn(d.name)))):"";
-    const stageSel='<select onchange="act(\'set_stage\',{stage:this.value})">'+STAGES.map(s=>'<option'+(s===d.stage?" selected":"")+'>'+s+'</option>').join("")+'</select>';
-    const intSel='<select onchange="act(\'interest\',{interest:this.value})">'+INTS.map(s=>'<option'+(s===d.interest?" selected":"")+'>'+s+'</option>').join("")+'</select>';
-    const tl=(d.timeline||[]).map(e=>'<div class="ev"><div class="ty">'+esc(e.type)+(e.channel?' <span class="sub">· '+esc(e.channel)+'</span>':'')+'</div>'+(e.note?'<div class="no">'+esc(e.note)+'</div>':'')+'<div class="wh">'+esc(e.at)+'</div></div>').join("");
-    document.getElementById("drawer").innerHTML=
-      '<div class="dhead"><div><div class="dname">'+esc(d.name||"(no name)")+'</div>'
-        +'<div class="dmeta">'+esc(d.ad||d.source||"")+' · '+esc(d.created||"")+'</div></div>'
-        +'<div class="x" onclick="closeDrawer()">✕</div></div>'
-      +'<div class="actions">'+(wa?'<a class="wa" href="'+wa+'" target="_blank">WhatsApp</a>':'')
-        +(d.email?'<a class="em" href="mailto:'+esc(d.email)+'">Email</a>':'')+'</div>'
-      +'<div class="contact"><span class="cp" onclick="copy(\''+esc(d.phone||"")+'\')">copy</span>📱 '+esc(d.phone||"—")+'<br>'
-        +'<span class="cp" onclick="copy(\''+esc(d.email||"")+'\')">copy</span>✉️ '+esc(d.email||"—")+'</div>'
-      +'<div class="field"><label>Stage</label>'+stageSel+'</div>'
-      +'<div class="field"><label>Interest</label>'+intSel+'</div>'
-      +'<div class="field"><label>Add note</label><textarea id="note" rows="2" placeholder="What happened…"></textarea>'
-        +'<button class="savebtn" onclick="saveNote()">Save note</button></div>'
-      +'<div class="field"><label>Activity</label><div class="tl">'+(tl||'<div class="sub">No activity yet.</div>')+'</div></div>';
+    if(!d||d.error){ toast("Couldn't load this lead","err"); return; }
+    renderProfile(d);
     document.getElementById("drawer").classList.add("open");
     document.getElementById("ov").style.display="block";
-  });
+  }).catch(err=>{ if(err.auth) openGate(); else toast("Couldn't reach the engine","err"); });
 }
-function closeDrawer(){ document.getElementById("drawer").classList.remove("open"); document.getElementById("ov").style.display="none"; curId=null; render(); }
-function act(action,extra){ call(action,Object.assign({lead_id:curId},extra)).then(()=>{ load(); openDetail(curId); }); }
-function saveNote(){ const t=document.getElementById("note").value.trim(); if(!t)return; call("note",{lead_id:curId,note:t}).then(()=>{ load(); openDetail(curId); }); }
-function copy(t){ navigator.clipboard&&navigator.clipboard.writeText(t); }
+function closeDrawer(fromRoute){ document.getElementById("drawer").classList.remove("open");
+  document.getElementById("ov").style.display="none"; curId=null; if(!fromRoute) setHash(null); render(); }
+function renderProfile(d){
+  const box=document.getElementById("pwrap"); clear(box);
+  // header
+  const meta=[d.source, d.ad, (d.days_since!=null?("captured "+d.days_since+"d ago"):null)].filter(Boolean).join("  ·  ");
+  box.appendChild(h("div",{class:"dhead"},[
+    h("div",{},[ h("div",{class:"dname",text:d.name||"(no name)"}), h("div",{class:"dmeta",text:meta}) ]),
+    h("button",{class:"x",text:"✕",on:{click:()=>closeDrawer()}})
+  ]));
+  const badges=h("div",{class:"badges"});
+  badges.appendChild(h("span",{class:"badge",text:"stage: "+d.stage}));
+  badges.appendChild(h("span",{class:"badge",text:"interest: "+d.interest}));
+  if(d.dup_count>1) badges.appendChild(h("span",{class:"badge warn",text:"duplicate ("+d.dup_count+")"}));
+  if(d.next_action_at) badges.appendChild(h("span",{class:"badge alert",text:"follow-up "+d.next_action_at}));
+  box.appendChild(badges);
+  // quick actions
+  const acts=h("div",{class:"actions"});
+  const waHref=d.wa_link?(d.wa_link+"?text="+encodeURIComponent(OPENER(fn(d.name)))):null;
+  if(waHref) acts.appendChild(h("a",{class:"btn wa",text:"WhatsApp",href:waHref,target:"_blank",on:{click:()=>logContacted(d.lead_id,d.stage)}}));
+  if(d.email) acts.appendChild(h("a",{class:"btn em",text:"Email",href:"mailto:"+encodeURIComponent(d.email),target:"_blank"}));
+  if(d.stage==="new") acts.appendChild(h("button",{class:"btn mini",text:"Mark contacted",on:{click:e=>{
+    doWrite("set_stage",{lead_id:d.lead_id,stage:"contacted"},e.target).then(ok=>{ if(ok){ const l=LEADS.find(x=>x.lead_id===d.lead_id); if(l){l.stage="contacted";} render(); toast("Marked contacted"); openDetail(d.lead_id,true);} }); }}}));
+  acts.appendChild(h("button",{class:"btn mini",text:"They replied",on:{click:e=>{
+    doWrite("event",{lead_id:d.lead_id,type:"wa_replied",channel:"whatsapp",note:"replied"},e.target).then(ok=>{ if(ok){ const l=LEADS.find(x=>x.lead_id===d.lead_id); if(l){l.replied=true;} render(); toast("Logged reply"); openDetail(d.lead_id,true);} }); }}}));
+  box.appendChild(acts);
+  // contact
+  const csec=h("div",{class:"psec"},[h("div",{class:"plabel",text:"Contact"})]);
+  const card=h("div",{class:"contact"});
+  card.appendChild(copyRow("Phone",d.phone));
+  card.appendChild(copyRow("Email",d.email));
+  csec.appendChild(card); box.appendChild(csec);
+  // status
+  const ssec=h("div",{class:"psec"},[h("div",{class:"plabel",text:"Status"})]);
+  const g=h("div",{class:"grid2"});
+  g.appendChild(h("label",{class:"pfield"},[h("span",{class:"pfl",text:"Stage"}),statusSelect("stage",d)]));
+  g.appendChild(h("label",{class:"pfield"},[h("span",{class:"pfl",text:"Interest"}),statusSelect("interest",d)]));
+  ssec.appendChild(g);
+  // next action
+  const naDate=h("input",{class:"pf",type:"date",value:d.next_action_at||""});
+  const naNote=h("input",{class:"pf",placeholder:"what's the next step?",value:d.next_action||""});
+  const na=h("div",{style:"margin-top:10px"},[
+    h("span",{class:"pfl",text:"Next follow-up"}),
+    h("div",{class:"grid2",style:"margin-top:4px"},[naDate,naNote]),
+    h("button",{class:"savebtn",text:"Save follow-up",on:{click:e=>{
+      doWrite("next_action",{lead_id:d.lead_id,at:naDate.value||null,note:naNote.value||null},e.target).then(ok=>{ if(ok){ toast("Follow-up saved"); load(); openDetail(d.lead_id,true);} }); }}})
+  ]);
+  ssec.appendChild(na); box.appendChild(ssec);
+  // attribution
+  const attr=h("div",{class:"psec"},[h("div",{class:"plabel",text:"Where they came from"})]);
+  attr.appendChild(h("div",{class:"kv"},[h("span",{class:"k",text:"Ad"}),h("span",{class:"v",text:d.ad||"-"})]));
+  if(d.entry_path) attr.appendChild(h("div",{class:"kv"},[h("span",{class:"k",text:"Entry"}),h("span",{class:"v",text:d.entry_path})]));
+  if(d.campaign) attr.appendChild(h("div",{class:"kv"},[h("span",{class:"k",text:"Campaign"}),h("span",{class:"v",text:d.campaign})]));
+  attr.appendChild(h("div",{class:"kv"},[h("span",{class:"k",text:"Source"}),h("span",{class:"v",text:d.source||"-"})]));
+  box.appendChild(attr);
+  // form answers
+  const fsec=h("div",{class:"psec"},[h("div",{class:"plabel",text:"What they told the form"})]);
+  const fa=d.form_answers||[];
+  if(fa.length){ const fc=h("div",{class:"fans"}); fa.forEach(x=>fc.appendChild(
+    h("div",{class:"kv"},[h("span",{class:"k",text:x.q}),h("span",{class:"v",text:x.a})]))); fsec.appendChild(fc); }
+  else fsec.appendChild(h("div",{class:"muted",text:"This form only captured name, phone and email. Richer questions will show here once a form asks them."}));
+  box.appendChild(fsec);
+  // qualification
+  const qsec=h("div",{class:"psec"},[h("div",{class:"plabel",text:"Qualification"})]);
+  const q=d.qualification||{};
+  const ptype=h("input",{class:"pf",placeholder:"project type (brand, site, packaging...)",value:q.project_type||""});
+  const pstage=qualSelect("project_stage",q.project_stage);
+  const pbudget=qualSelect("budget_band_aed",q.budget_band_aed);
+  const ptime=qualSelect("timeline",q.timeline);
+  const pdm=qualSelect("decision_maker",q.decision_maker);
+  const pwhy=h("textarea",{class:"pf",rows:2,placeholder:"why now? context worth remembering",value:q.why_now||""});
+  const qg=h("div",{class:"grid2"});
+  qg.appendChild(h("label",{class:"pfield"},[h("span",{class:"pfl",text:"Project"}),ptype]));
+  qg.appendChild(h("label",{class:"pfield"},[h("span",{class:"pfl",text:"Stage"}),pstage]));
+  qg.appendChild(h("label",{class:"pfield"},[h("span",{class:"pfl",text:"Budget"}),pbudget]));
+  qg.appendChild(h("label",{class:"pfield"},[h("span",{class:"pfl",text:"Timeline"}),ptime]));
+  qg.appendChild(h("label",{class:"pfield"},[h("span",{class:"pfl",text:"Decision maker"}),pdm]));
+  qsec.appendChild(qg);
+  qsec.appendChild(h("label",{class:"pfield",style:"margin-top:10px"},[h("span",{class:"pfl",text:"Why now"}),pwhy]));
+  qsec.appendChild(h("button",{class:"savebtn",text:"Save qualification",on:{click:e=>{
+    doWrite("qualify",{lead_id:d.lead_id,project_type:ptype.value,project_stage:pstage.value,
+      budget_band_aed:pbudget.value,timeline:ptime.value,decision_maker:pdm.value,why_now:pwhy.value},e.target)
+      .then(ok=>{ if(ok){ toast("Qualification saved"); openDetail(d.lead_id,true);} }); }}}));
+  box.appendChild(qsec);
+  // timeline + add note
+  const tsec=h("div",{class:"psec"},[h("div",{class:"plabel",text:"Activity"})]);
+  const noteIn=h("textarea",{class:"pf",rows:2,placeholder:"add a note..."});
+  tsec.appendChild(noteIn);
+  tsec.appendChild(h("button",{class:"savebtn",text:"Add note",on:{click:e=>{ const t=noteIn.value.trim(); if(!t) return;
+    doWrite("note",{lead_id:d.lead_id,note:t},e.target).then(ok=>{ if(ok){ toast("Note added"); load(); openDetail(d.lead_id,true);} }); }}}));
+  const tl=h("div",{class:"tl",style:"margin-top:12px"});
+  (d.timeline||[]).forEach(e=>{ tl.appendChild(h("div",{class:"ev"},[
+    h("div",{class:"ty"},[ document.createTextNode(EVLABEL[e.type]||e.type), e.channel?h("span",{class:"sub",text:" · "+e.channel}):null ]),
+    e.note?h("div",{class:"no",text:e.note}):null,
+    h("div",{class:"wh",text:e.at+(e.actor&&e.actor!=="founder"?(" · "+e.actor):"")})
+  ])); });
+  if(!(d.timeline||[]).length) tl.appendChild(h("div",{class:"muted",text:"No activity yet."}));
+  tsec.appendChild(tl); box.appendChild(tsec);
+}
 
-if(PW){ load(); } else { openGate(); }
+// ---------- wire up ----------
+document.getElementById("loginBtn").addEventListener("click",login);
+document.getElementById("refreshBtn").addEventListener("click",load);
+document.getElementById("lockBtn").addEventListener("click",logout);
+document.getElementById("search").addEventListener("input",render);
+document.getElementById("ov").addEventListener("click",()=>closeDrawer());
 document.getElementById("pw").addEventListener("keydown",e=>{ if(e.key==="Enter") login(); });
+document.getElementById("head").addEventListener("click",e=>{ const th=e.target.closest("th[data-k]"); if(th) sortBy(th.dataset.k); });
+document.getElementById("rows").addEventListener("click",e=>{ if(e.target.closest("select")||e.target.closest("button")) return;
+  const tr=e.target.closest("tr"); if(tr&&tr.dataset.id) openDetail(tr.dataset.id); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&curId) closeDrawer(); });
+window.addEventListener("hashchange",routeHash);
+if(PW){ load(); } else { openGate(); }
 </script>
 </body></html>
