@@ -48,6 +48,7 @@
  .tag{display:inline-block;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:1px 5px;border-radius:5px;margin-left:6px;vertical-align:middle}
  .tag.dup{background:#3a2a12;color:var(--gold)}
  .tag.due{background:#3a1414;color:var(--red)}
+ .tag.ob{background:#0d2438;color:var(--ocean)}
  .csel{width:100%;min-width:104px;background:transparent;border:1px solid transparent;color:inherit;font-family:inherit;font-size:12px;font-weight:600;
    padding:4px 6px;cursor:pointer;appearance:none;-webkit-appearance:none;border-radius:7px;text-transform:capitalize}
  .csel:hover{border-color:var(--line)}
@@ -135,6 +136,7 @@
   <input class="search" id="search" placeholder="Search name, ad or last-4...">
   <div class="chips" id="stageChips"></div>
   <div class="chips" id="intChips"></div>
+  <div class="chips" id="srcChips"></div>
   <div class="chips" id="dueChips"></div>
   <span class="count" id="count"></span>
 </div>
@@ -185,7 +187,8 @@ const OPTS={
 const OPENER=n=>"Hey "+n+", Alex here, founder at Terraflow. You just filled out one of our forms so I figured I'd reach out personally rather than let an autoresponder do it.\n\nQuick one: what are you building right now? If you send me your site or deck I'll tell you straight what's making it read earlier-stage than you actually are, and the two or three things I'd change first.\n\nNo charge, no pitch. Just want to be useful.";
 
 let TOK=localStorage.getItem("tf_cockpit_tok")||"";
-let LEADS=[], fStage="all", fInt="all", fDue=false, sortKey="last_activity", sortDir=-1, curId=null;
+let LEADS=[], fStage="all", fInt="all", fSrc="all", fDue=false, sortKey="last_activity", sortDir=-1, curId=null;
+const SRC_LABEL={instant_form:"form",ctwa:"ctwa",outbound:"outbound"};
 
 // ---------- tiny safe DOM builder (never accepts HTML strings) ----------
 function h(tag,a,kids){
@@ -274,6 +277,12 @@ function chips(){
   const ic=document.getElementById("intChips"); clear(ic);
   ic.appendChild(chip("any",fInt==="all",()=>{fInt="all";chips();render();}));
   INTS.forEach(s=>ic.appendChild(chip(s,fInt===s,()=>{fInt=s;chips();render();},cnt("interest",s))));
+  const xc=document.getElementById("srcChips"); clear(xc);
+  const srcs=[...new Set(LEADS.map(l=>l.source).filter(Boolean))];
+  if(srcs.length>1){
+    xc.appendChild(chip("all sources",fSrc==="all",()=>{fSrc="all";chips();render();}));
+    srcs.forEach(s=>xc.appendChild(chip(SRC_LABEL[s]||s,fSrc===s,()=>{fSrc=s;chips();render();},cnt("source",s))));
+  }
   const dc=document.getElementById("dueChips"); clear(dc);
   dc.appendChild(chip("due",fDue,()=>{fDue=!fDue;chips();render();},dueCount(),"due"));
 }
@@ -283,7 +292,7 @@ const SORTVAL={ name:l=>(l.name||"").toLowerCase(), ad:l=>(l.ad||"").toLowerCase
   last_activity:l=>Number(l.last_activity_iso)||0, created:l=>Number(l.created_iso)||0 };
 function filtered(){
   const q=(document.getElementById("search").value||"").toLowerCase();
-  let a=LEADS.filter(l=>(fStage==="all"||l.stage===fStage)&&(fInt==="all"||l.interest===fInt)&&(!fDue||l.due)
+  let a=LEADS.filter(l=>(fStage==="all"||l.stage===fStage)&&(fInt==="all"||l.interest===fInt)&&(fSrc==="all"||l.source===fSrc)&&(!fDue||l.due)
     &&(!q||(l.name||"").toLowerCase().includes(q)||(l.ad||"").toLowerCase().includes(q)||(l.last4||"").includes(q)));
   const f=SORTVAL[sortKey]||SORTVAL.last_activity;
   a.sort((x,y)=>{ const A=f(x),B=f(y); return (A<B?-1:A>B?1:0)*sortDir; });
@@ -325,6 +334,7 @@ function render(){
     const nc=h("td",{class:"pad"});
     nc.appendChild(h("span",{class:"nm",text:l.name||"(no name)"}));
     nc.appendChild(h("span",{class:"sub",text:" ..."+(l.last4||"")}));
+    if(l.source==="outbound") nc.appendChild(h("span",{class:"tag ob",text:"out",title:"Outbound: promoted from a prospect"}));
     if(l.dup_count>1) nc.appendChild(h("span",{class:"tag dup",text:"dup",title:"Shares a phone with "+(l.dup_count-1)+" other lead(s)"}));
     if(l.due) nc.appendChild(h("span",{class:"tag due",text:"due",title:"Follow-up due "+(l.next_action_at||"")}));
     tr.appendChild(nc);
